@@ -19,7 +19,6 @@ import {
   BsBarChartFill, 
   BsGearFill,
   BsBriefcaseFill,
-  BsLightningFill,
   BsPersonCircle,
   BsCheck2Square,
   BsXLg,
@@ -27,7 +26,6 @@ import {
   BsBoxArrowRight,
   BsChatLeftTextFill,
   BsChatDotsFill,
-  BsFolder2Open,
   BsSunFill,
   BsMoonStarsFill
 } from "react-icons/bs";
@@ -47,14 +45,15 @@ const roleMenus: Record<string, SidebarItem[]> = {
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
     { name: "System Analytics", icon: <BsBarChartFill />, tab: "analytics" },
     { name: "Settings", icon: <BsGearFill />, tab: "settings" },
+    { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],
   Manager: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
     { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
     { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
-    { name: "Document Manager", icon: <BsFolder2Open />, tab: "documents" },
-    { name: "Team Stats", icon: <BsLightningFill />, tab: "stats" },
+    { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
+    { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],
   User: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },

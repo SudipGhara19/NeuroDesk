@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['Admin', 'Manager', 'User'],
     default: 'User'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isAiRestricted: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

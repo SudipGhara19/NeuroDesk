@@ -11,6 +11,8 @@ import { useTheme } from '@/components/providers/ThemeProvider';
 import AdminDashboard from '@/components/Admin/AdminDashboard';
 import ManagerDashboard from '@/components/Manager/ManagerDashboard';
 import UserDashboard from '@/components/User/UserDashboard';
+import UserManagement from '@/components/shared/UserManagement';
+import UserProfile from '@/components/User/UserProfile';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -33,6 +35,15 @@ function DashboardContent() {
   const role = user.role || 'User';
 
   const renderContent = () => {
+    // Shared routed tabs (available to multiple roles)
+    if (activeTab === 'users' && (role === 'Admin' || role === 'Manager')) {
+      return <UserManagement viewMode={role === 'Admin' ? 'admin' : 'manager'} />;
+    }
+
+    if (activeTab === 'profile') {
+      return <UserProfile />;
+    }
+
     // If not on 'dashboard' tab, show a generic "Under Construction" for other tabs
     if (activeTab !== 'dashboard') {
       return (
@@ -67,7 +78,7 @@ function DashboardContent() {
       
       <main className="flex-1 w-full lg:ml-[280px]">
         {/* Main Header / Breadcrumb */}
-        <header className={`h-16 lg:h-20 flex items-center px-8 lg:px-12 backdrop-blur-md sticky top-0 z-40 border-b transition-colors ${
+        <header className={`h-16 lg:h-20 flex items-center px-4 lg:px-10 backdrop-blur-md sticky top-0 z-40 border-b transition-colors ${
           theme === 'dark' ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-white/80 border-gray-100'
         }`}>
            <div className="flex items-center gap-3">
@@ -89,7 +100,7 @@ function DashboardContent() {
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="p-8 lg:p-12 mb-20 lg:mt-0">
+        <div className="p-3 sm:p-5 lg:p-8 mb-20 lg:mt-0">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>

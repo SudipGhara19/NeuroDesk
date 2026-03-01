@@ -82,6 +82,12 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      // Check if user is active
+      if (!user.isActive) {
+        res.status(401);
+        throw new Error('This account has been deactivated. Please contact an admin.');
+      }
+
       // Set user to online and update last active
       const userData = await UserData.findOneAndUpdate(
         { userId: user._id },
