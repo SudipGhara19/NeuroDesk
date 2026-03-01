@@ -2,12 +2,24 @@ const User = require('../models/user.model');
 const UserData = require('../models/userData.model');
 const bcrypt = require('bcryptjs');
 
-// @desc    Get all users (Admin only)
+// @desc    Get all users (Admin/Manager only)
 // @route   GET /api/users
-// @access  Private/Admin
+// @access  Private/Admin/Manager
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find().select('-password');
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all team members (public basic info for chat)
+// @route   GET /api/users/members
+// @access  Private (all authenticated users)
+const getTeamMembers = async (req, res, next) => {
+  try {
+    const users = await User.find({ isActive: { $ne: false } }).select('_id fullName email role');
     res.json(users);
   } catch (error) {
     next(error);
@@ -226,6 +238,7 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
   getUsers,
+  getTeamMembers,
   createManager,
   getUserProfile,
   updateUserProfile,

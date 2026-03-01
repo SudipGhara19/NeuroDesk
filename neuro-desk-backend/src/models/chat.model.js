@@ -11,6 +11,15 @@ const chatSchema = new mongoose.Schema({
     ref: 'User',
     required: false // Optional for group/global chat
   },
+  roomId: {
+    type: String, 
+    required: false // e.g., 'team_123', 'doc_456'
+  },
+  roomType: {
+    type: String,
+    enum: ['private', 'global', 'team'],
+    default: 'global'
+  },
   message: {
     type: String,
     required: true,
@@ -23,6 +32,7 @@ const chatSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexing for faster retrieval
-chatSchema.index({ senderId: 1, recipientId: 1, createdAt: -1 });
+chatSchema.index({ roomId: 1, timestamp: -1 });
+chatSchema.index({ senderId: 1, recipientId: 1, timestamp: -1 });
 
 module.exports = mongoose.model('Chat', chatSchema);

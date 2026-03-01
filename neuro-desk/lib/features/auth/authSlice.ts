@@ -69,6 +69,19 @@ export const updateProfile = createAsyncThunk<{ message: string; user: User; pro
   }
 );
 
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { dispatch }) => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      dispatch(authSlice.actions.logout());
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -100,10 +113,19 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.profileLoading = false;
+        // The profile endpoint returns a UserData doc (different _id, no role).
+        // We must preserve the core identity fields from the original login token.
+        const profileData = action.payload.user;
         state.user = {
           ...state.user,
-          ...action.payload.user,
-          userData: action.payload.user
+          // Merge only safe profile fields — never overwrite _id, email, or role
+          fullName: profileData.fullName || state.user?.fullName,
+          department: profileData.department,
+          bio: profileData.bio,
+          phone: profileData.phone,
+          address: profileData.address,
+          stats: profileData.stats,
+          userData: profileData,
         } as User;
       })
       .addCase(fetchProfile.rejected, (state, action) => {

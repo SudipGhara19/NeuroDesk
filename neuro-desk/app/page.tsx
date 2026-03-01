@@ -13,6 +13,7 @@ import ManagerDashboard from '@/components/Manager/ManagerDashboard';
 import UserDashboard from '@/components/User/UserDashboard';
 import UserManagement from '@/components/shared/UserManagement';
 import UserProfile from '@/components/User/UserProfile';
+import Chat from '@/components/shared/Chat';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -42,6 +43,10 @@ function DashboardContent() {
 
     if (activeTab === 'profile') {
       return <UserProfile />;
+    }
+
+    if (activeTab === 'team-chat') {
+      return <Chat />;
     }
 
     // If not on 'dashboard' tab, show a generic "Under Construction" for other tabs
@@ -100,11 +105,17 @@ function DashboardContent() {
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="p-3 sm:p-5 lg:p-8 mb-20 lg:mt-0">
-          <div className="max-w-7xl mx-auto">
+        {activeTab === 'team-chat' ? (
+          <div className="h-[calc(100vh-5rem)] overflow-hidden">
             {renderContent()}
           </div>
-        </div>
+        ) : (
+          <div className="p-3 sm:p-5 lg:p-8 mb-20 lg:mt-0">
+            <div className="max-w-7xl mx-auto">
+              {renderContent()}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

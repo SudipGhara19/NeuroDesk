@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  BsXLg, BsPersonCircle, BsEnvelopeFill, BsShieldLockFill, BsCalendarCheck, 
+  BsXLg, BsEnvelopeFill, BsShieldLockFill, BsCalendarCheck, 
   BsRobot, BsTelephoneFill, BsGeoAltFill, BsBuilding, BsGraphUp, 
   BsClockHistory, BsFileEarmarkTextFill, BsLightningFill, BsCashStack,
   BsLightbulbFill
@@ -99,10 +99,10 @@ export default function UserProfileModal({ isOpen, onClose, user, theme }: UserP
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
                 <Badge label={user.role} color={
                   user.role === 'Admin' ? 'purple' : user.role === 'Manager' ? 'blue' : 'gray'
-                } theme={theme} />
-                <Badge label={user.isActive ? 'Active' : 'Blocked'} color={user.isActive ? 'green' : 'red'} theme={theme} />
-                {user.isAiRestricted && <Badge label="AI Restricted" color="yellow" theme={theme} />}
-                {user.department && <Badge label={user.department} color="indigo" theme={theme} />}
+                } />
+                <Badge label={user.isActive ? 'Active' : 'Blocked'} color={user.isActive ? 'green' : 'red'} />
+                {user.isAiRestricted && <Badge label="AI Restricted" color="yellow" />}
+                {user.department && <Badge label={user.department} color="indigo" />}
               </div>
             </div>
             
@@ -199,7 +199,7 @@ export default function UserProfileModal({ isOpen, onClose, user, theme }: UserP
   );
 }
 
-function Badge({ label, color, theme }: { label: string; color: 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'gray' | 'indigo'; theme: string }) {
+function Badge({ label, color }: { label: string; color: 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'gray' | 'indigo' }) {
   const colors = {
     green: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
     red: 'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400',

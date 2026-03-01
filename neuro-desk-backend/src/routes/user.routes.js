@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
   getUsers, 
+  getTeamMembers,
   getUserProfile, 
   updateUserProfile,
   updateUserStatus,
@@ -12,6 +13,9 @@ const {
 const { verifyToken, restrictTo } = require('../middlewares/auth.middleware');
 
 router.post('/manager', verifyToken, restrictTo('Admin'), createManager);
+
+// All authenticated users can see team members (for chat contacts list)
+router.get('/members', verifyToken, getTeamMembers);
 
 router.get('/profile', verifyToken, getUserProfile);
 router.put('/profile', verifyToken, updateUserProfile);

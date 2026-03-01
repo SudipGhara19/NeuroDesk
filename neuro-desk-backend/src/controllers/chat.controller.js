@@ -10,21 +10,32 @@ const getChatHistory = async (req, res, next) => {
   try {
     let query;
     if (recipientId) {
-      // Direct messages between two users
-      query = {
-        $or: [
-          { senderId: userId, recipientId: recipientId },
-          { senderId: recipientId, recipientId: userId }
-        ]
-      };
+      const isRoomId = 
+        recipientId.startsWith('team_') || 
+        recipientId.startsWith('doc_') || 
+        recipientId === 'global';
+
+      if (isRoomId) {
+        // It's a room ID — query by roomId field
+        query = { roomId: recipientId };
+      } else {
+        // Direct messages between two users (private chat)
+        query = {
+          $or: [
+            { senderId: userId, recipientId: recipientId },
+            { senderId: recipientId, recipientId: userId }
+          ]
+        };
+      }
     } else {
-      // Global chat (where recipientId is null)
-      query = { recipientId: null };
+      // No param — return global room
+      query = { roomType: 'global' };
     }
 
     const chats = await Chat.find(query)
-      .sort({ createdAt: 1 }) // Order by time (oldest first)
-      .limit(100); // Limit for performance
+      .sort({ timestamp: 1 })
+      .limit(100)
+      .populate('senderId', 'fullName email');
 
     res.json(chats);
   } catch (error) {

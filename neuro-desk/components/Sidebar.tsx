@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '@/lib/features/auth/authSlice';
+import { logoutUser } from '@/lib/features/auth/authSlice';
 import { RootState } from '@/lib/store';
 import logo from "../public/common/logo.png";
 import logoWhite from "../public/common/logo-white.png";
@@ -40,7 +40,7 @@ const roleMenus: Record<string, SidebarItem[]> = {
   Admin: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
     { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
-    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
+    { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
     { name: "System Analytics", icon: <BsBarChartFill />, tab: "analytics" },
@@ -50,7 +50,7 @@ const roleMenus: Record<string, SidebarItem[]> = {
   Manager: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
     { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
-    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
+    { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
     { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
@@ -58,7 +58,7 @@ const roleMenus: Record<string, SidebarItem[]> = {
   User: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
     { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
-    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
+    { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],
 };
@@ -189,7 +189,8 @@ const Sidebar = () => {
   }, []);
 
   const handleLogout = () => {
-    dispatch(logout());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dispatch(logoutUser() as any);
     router.push('/auth?tab=login');
   };
 
