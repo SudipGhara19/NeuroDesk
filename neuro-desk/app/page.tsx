@@ -5,6 +5,7 @@ import { selectCurrentUser, selectIsAuthenticated } from '@/lib/features/auth/au
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 // Role Dashboards
 import AdminDashboard from '@/components/Admin/AdminDashboard';
@@ -14,6 +15,7 @@ import UserDashboard from '@/components/User/UserDashboard';
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { theme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "dashboard";
@@ -35,12 +37,12 @@ function DashboardContent() {
     if (activeTab !== 'dashboard') {
       return (
         <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-             <span className="text-4xl text-gray-300">⚙️</span>
+          <div className="w-20 h-20 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
+             <span className="text-4xl text-gray-300 dark:text-gray-600">⚙️</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 uppercase tracking-tight">Access Denied or Not Ready</h2>
-          <p className="text-gray-500 mt-2 max-w-sm">
-            The <span className="text-black font-bold">&quot;{activeTab}&quot;</span> section is currently under development for the <span className="font-bold">{role}</span> dashboard.
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white uppercase tracking-tight">Access Denied or Not Ready</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-sm">
+            The <span className="text-black dark:text-white font-bold">&quot;{activeTab}&quot;</span> section is currently under development for the <span className="font-bold">{role}</span> dashboard.
           </p>
         </div>
       );
@@ -58,28 +60,36 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#FDFDFD]">
+    <div className={`flex min-h-screen transition-colors duration-300 ${
+      theme === 'dark' ? 'bg-[#0a0a0a] text-gray-100' : 'bg-white text-gray-900'
+    }`}>
       <Sidebar />
       
       <main className="flex-1 w-full lg:ml-[280px]">
         {/* Main Header / Breadcrumb */}
-        <header className="h-16 lg:h-20 flex items-center px-8 lg:px-12 bg-white/50 backdrop-blur-md sticky top-0 z-[40]">
+        <header className={`h-16 lg:h-20 flex items-center px-8 lg:px-12 backdrop-blur-md sticky top-0 z-40 border-b transition-colors ${
+          theme === 'dark' ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-white/80 border-gray-100'
+        }`}>
            <div className="flex items-center gap-3">
-             <span className="w-1.5 h-6 bg-black rounded-full" />
-             <h1 className="text-xl font-bold text-gray-900 tracking-tight capitalize">
+             <span className="w-1.5 h-6 bg-primary rounded-full shadow-sm shadow-primary/20" />
+             <h1 className={`text-xl font-bold tracking-tight capitalize ${
+               theme === 'dark' ? 'text-white' : 'text-gray-900'
+             }`}>
                {activeTab.replace('-', ' ')}
              </h1>
            </div>
            
            <div className="ml-auto hidden sm:flex items-center gap-4">
-              <div className="px-4 py-1.5 bg-gray-100 rounded-full text-xs font-black text-gray-500 uppercase tracking-widest border border-gray-200">
+              <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border transition-colors ${
+                theme === 'dark' ? 'bg-white/5 text-gray-400 border-white/10' : 'bg-gray-100 text-gray-500 border-gray-200'
+              }`}>
                 LATEST UPDATES: MAR 01
               </div>
            </div>
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="p-8 lg:p-12 mt-16 lg:mt-0">
+        <div className="p-8 lg:p-12 mb-20 lg:mt-0">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
@@ -90,8 +100,15 @@ function DashboardContent() {
 }
 
 export default function Home() {
+  const { theme } = useTheme();
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center font-black tracking-widest animate-pulse">SYNCHRONIZING DESK...</div>}>
+    <Suspense fallback={
+      <div className={`h-screen flex items-center justify-center font-black tracking-widest animate-pulse transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-white text-black'
+      }`}>
+        SYNCHRONIZING DESK...
+      </div>
+    }>
       <DashboardContent />
     </Suspense>
   );

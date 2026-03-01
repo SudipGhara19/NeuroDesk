@@ -7,8 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '@/lib/features/auth/authSlice';
 import { RootState } from '@/lib/store';
+import logo from "../public/common/logo.png";
 import logoWhite from "../public/common/logo-white.png";
 import { User } from '@/lib/features/auth/authSlice';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 // Icons
 import { 
@@ -24,7 +26,10 @@ import {
   BsList,
   BsBoxArrowRight,
   BsChatLeftTextFill,
-  BsFolder2Open
+  BsChatDotsFill,
+  BsFolder2Open,
+  BsSunFill,
+  BsMoonStarsFill
 } from "react-icons/bs";
 
 interface SidebarItem {
@@ -36,7 +41,8 @@ interface SidebarItem {
 const roleMenus: Record<string, SidebarItem[]> = {
   Admin: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "chat" },
+    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
     { name: "System Analytics", icon: <BsBarChartFill />, tab: "analytics" },
@@ -44,15 +50,16 @@ const roleMenus: Record<string, SidebarItem[]> = {
   ],
   Manager: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "chat" },
+    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "Document Manager", icon: <BsFolder2Open />, tab: "documents" },
     { name: "Team Stats", icon: <BsLightningFill />, tab: "stats" },
   ],
   User: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "chat" },
-    { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
+    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "Team Chat", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],
 };
@@ -66,75 +73,107 @@ interface SidebarProps {
   menuItems: SidebarItem[];
 }
 
-const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems }: SidebarProps) => (
-  <div className="flex flex-col h-full py-8 px-6 bg-[#171717] text-white">
-    {/* Brand */}
-    <div className="flex items-center gap-3 mb-10 px-2">
-      <div className="w-14 h-14 relative">
-        <Image src={logoWhite} alt="Neuro Desk" fill className="object-contain" />
-      </div>
-      <span className="text-xl font-bold tracking-tighter">NEURO DESK</span>
-    </div>
-
-    {/* User Quick Info */}
-    <div className="mb-10 px-2 py-4 bg-white/5 rounded-2xl border border-white/10">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark flex items-center justify-center font-bold border-2 border-white/20">
-          {user?.fullName?.charAt(0) || 'U'}
+const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems }: SidebarProps) => {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <div className={`flex flex-col h-full py-8 px-6 transition-colors duration-300 ${
+      theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-white text-gray-900 border-r border-gray-100'
+    }`}>
+      {/* Brand */}
+      <div className="flex items-center gap-3 mb-10 px-2">
+        <div className="w-14 h-14 relative">
+          <Image src={theme === 'dark' ? logoWhite : logo} alt="Neuro Desk" fill className="object-contain" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold truncate">{user?.fullName}</p>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{user?.role}</p>
+        <span className={`text-xl font-bold tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>NEURO DESK</span>
+      </div>
+
+      {/* User Quick Info */}
+      <div className={`mb-10 px-2 py-4 rounded-2xl border transition-colors ${
+        theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-dark flex items-center justify-center font-bold border-2 border-white/20">
+            {user?.fullName?.charAt(0) || 'U'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold truncate">{user?.fullName}</p>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{user?.role}</p>
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Navigation */}
-    <nav className="flex-1 space-y-1">
-      <p className="px-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Main Menu</p>
-      {menuItems.map((item) => (
-        <Link
-          key={item.tab}
-          href={`/?tab=${item.tab}`}
-          onClick={() => setIsOpen(false)}
-          className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${
-            activeTab === item.tab 
-              ? "bg-white text-black font-bold shadow-lg shadow-white/5" 
-              : "text-gray-400 hover:text-white hover:bg-white/5"
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1">
+        <p className="px-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Main Menu</p>
+        {menuItems.map((item) => (
+          <Link
+            key={item.tab}
+            href={`/?tab=${item.tab}`}
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${
+              activeTab === item.tab 
+                ? theme === 'dark' ? "bg-white text-black font-bold shadow-lg shadow-white/5" : "bg-black text-white font-bold shadow-lg shadow-black/5" 
+                : theme === 'dark' ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-gray-500 hover:text-black hover:bg-gray-100"
+            }`}
+          >
+            <span className={`text-xl transition-transform duration-300 ${activeTab === item.tab ? "scale-110" : "group-hover:scale-110"}`}>
+              {item.icon}
+            </span>
+            <span className="text-sm">{item.name}</span>
+            {activeTab === item.tab && (
+              <div className={`ml-auto w-1.5 h-1.5 rounded-full ring-4 ${
+                theme === 'dark' ? "bg-black ring-white" : "bg-white ring-black"
+              }`} />
+            )}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Bottom Actions */}
+      <div className={`mt-auto space-y-2 pt-6 border-t ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group mb-2 ${
+            theme === 'dark' ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-gray-500 hover:text-black hover:bg-gray-100"
           }`}
         >
-          <span className={`text-xl transition-transform duration-300 ${activeTab === item.tab ? "scale-110" : "group-hover:scale-110"}`}>
-            {item.icon}
-          </span>
-          <span className="text-sm">{item.name}</span>
-          {activeTab === item.tab && (
-            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-black ring-4 ring-white" />
-          )}
-        </Link>
-      ))}
-    </nav>
+          <div className="relative w-5 h-5">
+            {theme === 'light' ? (
+              <BsSunFill className="text-xl text-yellow-500 group-hover:scale-110 transition-transform" />
+            ) : (
+              <BsMoonStarsFill className="text-xl text-blue-400 group-hover:scale-110 transition-transform" />
+            )}
+          </div>
+          <span className="text-sm font-bold">{theme === 'light' ? 'Light' : 'Dark'} Mode</span>
+        </button>
 
-    {/* Bottom Actions */}
-    <div className="mt-auto space-y-2 pt-6 border-t border-white/5">
-      <button 
-        onClick={handleLogout}
-        className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all group lg:mb-4"
-      >
-        <BsBoxArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
-        <span className="text-sm font-bold">Sign Out</span>
-      </button>
-      
-      {user?.role === "User" && <div className="hidden lg:block p-4 bg-gradient-to-br from-primary/20 to-primary-dark/20 rounded-2xl border border-white/5">
-        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">PRO FEATURES</p>
-        <p className="text-xs text-gray-300 font-medium leading-relaxed">Upgrade to unlock advanced AI insights and automation.</p>
-      </div>}
+        <button 
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group lg:mb-4 ${
+            theme === 'dark' ? "text-gray-400 hover:text-red-400 hover:bg-red-500/10" : "text-gray-500 hover:text-red-500 hover:bg-red-50"
+          }`}
+        >
+          <BsBoxArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
+          <span className="text-sm font-bold">Sign Out</span>
+        </button>
+        
+        {user?.role === "User" && <div className={`hidden lg:block p-4 rounded-2xl border transition-colors ${
+          theme === 'dark' ? 'bg-gradient-to-br from-primary/20 to-primary-dark/20 border-white/5' : 'bg-primary/5 border-primary/10'
+        }`}>
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">PRO FEATURES</p>
+          <p className={`text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Upgrade to unlock advanced AI insights and automation.</p>
+        </div>}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Sidebar = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
+  const { theme } = useTheme();
   
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "dashboard";
@@ -169,16 +208,20 @@ const Sidebar = () => {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 w-full h-16 bg-[#171717] flex items-center justify-between px-6 z-[100] border-b border-white/5">
+      <div className={`lg:hidden fixed top-0 left-0 w-full h-16 flex items-center justify-between px-6 z-[100] border-b transition-all duration-300 ${
+        theme === 'dark' ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-gray-100'
+      }`}>
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 relative ">
-              <Image src={logoWhite} alt="Neuro Desk" fill className="object-contain" />
+              <Image src={theme === 'dark' ? logoWhite : logo} alt="Neuro Desk" fill className="object-contain" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-white">NEURO DESK</span>
+            <span className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>NEURO DESK</span>
           </div>
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 text-white bg-white/5 rounded-lg active:scale-95 transition-all"
+            className={`p-2 rounded-lg active:scale-95 transition-all ${
+              theme === 'dark' ? 'text-white bg-white/5' : 'text-gray-900 bg-gray-100'
+            }`}
           >
             {isOpen ? <BsXLg size={22} /> : <BsList size={22} />}
           </button>
