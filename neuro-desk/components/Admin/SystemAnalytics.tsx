@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
 import HealthReportModal from '../modals/analytics/HealthReportModal';
@@ -53,8 +55,9 @@ export default function SystemAnalytics() {
       try {
         const res = await api.get('/analytics/system');
         setData(res.data);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch analytics');
+      } catch (err) {
+        const fetchError = err as { response?: { data?: { message?: string } } };
+        setError(fetchError.response?.data?.message || 'Failed to fetch analytics');
       } finally {
         setLoading(false);
       }
@@ -103,6 +106,7 @@ export default function SystemAnalytics() {
         borderWidth: 1,
         padding: 12,
         callbacks: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: (context: any) => {
             let label = context.dataset.label || '';
             if (label) label += ': ';
@@ -126,8 +130,9 @@ export default function SystemAnalytics() {
       const res = await api.post('/analytics/system/analyze');
       setReportData(res.data.report);
       setShowReport(true);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to analyze system health');
+    } catch (err) {
+      const fetchError = err as { response?: { data?: { message?: string } } };
+      alert(fetchError.response?.data?.message || 'Failed to analyze system health');
     } finally {
       setIsAnalyzing(false);
     }

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { BsXLg, BsRobot } from 'react-icons/bs';
@@ -63,15 +65,15 @@ export default function HealthReportModal({ isOpen, onClose, reportMarkdown }: H
             }`}>
               <ReactMarkdown
                 components={{
-                  h1: ({node, ...props}) => <h1 className={`text-2xl font-bold mb-4 mt-6 ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
-                  h2: ({node, ...props}) => <h2 className={`text-xl font-bold mb-3 mt-6 border-b pb-2 ${isDark ? 'text-white border-white/10' : 'text-black border-gray-200'}`} {...props} />,
-                  h3: ({node, ...props}) => <h3 className={`text-lg font-bold mb-2 mt-4 ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
-                  p: ({node, ...props}) => <p className="mb-4 leading-relaxed" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />,
-                  ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />,
-                  li: ({node, ...props}) => <li className="leading-relaxed" {...props} />,
-                  strong: ({node, ...props}) => <strong className={`font-bold ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
-                  blockquote: ({node, ...props}) => <blockquote className={`pl-4 border-l-4 italic my-4 ${isDark ? 'border-purple-500 bg-purple-500/10 text-gray-300' : 'border-purple-500 bg-purple-50 tracking-tight text-gray-700'} p-3 rounded-r-lg`} {...props} />,
+                  h1: ({ ...props }) => <h1 className={`text-2xl font-bold mb-4 mt-6 ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
+                  h2: ({ ...props }) => <h2 className={`text-xl font-bold mb-3 mt-6 border-b pb-2 ${isDark ? 'text-white border-white/10' : 'text-black border-gray-200'}`} {...props} />,
+                  h3: ({ ...props }) => <h3 className={`text-lg font-bold mb-2 mt-4 ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
+                  p: ({ ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
+                  ul: ({ ...props }) => <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />,
+                  ol: ({ ...props }) => <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />,
+                  li: ({ ...props }) => <li className="leading-relaxed" {...props} />,
+                  strong: ({ ...props }) => <strong className={`font-bold ${isDark ? 'text-white' : 'text-black'}`} {...props} />,
+                  blockquote: ({ ...props }) => <blockquote className={`pl-4 border-l-4 italic my-4 ${isDark ? 'border-purple-500 bg-purple-500/10 text-gray-300' : 'border-purple-500 bg-purple-50 tracking-tight text-gray-700'} p-3 rounded-r-lg`} {...props} />,
                 }}
               >
                 {reportMarkdown}

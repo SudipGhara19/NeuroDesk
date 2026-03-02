@@ -58,8 +58,14 @@ export default function TokenUsageChart({ usedTokens = 0, theme }: TokenUsageCha
         borderWidth: 1,
         padding: 10,
         callbacks: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: function(context: any) {
-            return ` ${context.label}: ${context.parsed.toLocaleString()}`;
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += context.parsed.toLocaleString();
+            return label;
           }
         }
       },

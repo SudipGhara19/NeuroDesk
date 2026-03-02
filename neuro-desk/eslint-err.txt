@@ -1,0 +1,8 @@
+[0m[0m
+[0m[4mD:\ASSESMENT\Neuro Desk\Neuro-Desk\neuro-desk\components\Admin\SystemAnalytics.tsx[24m[0m
+[0m   [2m56:21[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m106:28[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m129:19[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[31m[1m✖ 3 problems (3 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
