@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 import StoreProvider from "@/components/providers/StoreProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import SocketProvider from "@/components/providers/SocketProvider";
 
 export default function RootLayout({
   children,
@@ -44,7 +45,9 @@ export default function RootLayout({
       >
         <StoreProvider>
           <ThemeProvider>
-            {children}
+            <SocketProvider>
+              {children}
+            </SocketProvider>
           </ThemeProvider>
         </StoreProvider>
       </body>

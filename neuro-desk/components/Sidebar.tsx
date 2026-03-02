@@ -11,6 +11,7 @@ import logo from "../public/common/logo.png";
 import logoWhite from "../public/common/logo-white.png";
 import { User } from '@/lib/features/auth/authSlice';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useSocket } from '@/components/providers/SocketProvider';
 
 // Icons
 import { 
@@ -72,7 +73,7 @@ interface SidebarProps {
   menuItems: SidebarItem[];
 }
 
-const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems }: SidebarProps) => {
+const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems, unreadCount }: SidebarProps & { unreadCount: number }) => {
   const { theme, toggleTheme } = useTheme();
   
   return (
@@ -120,6 +121,12 @@ const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems }:
               {item.icon}
             </span>
             <span className="text-sm">{item.name}</span>
+            {/* Unread badge for Chats */}
+            {item.tab === 'team-chat' && unreadCount > 0 && activeTab !== 'team-chat' && (
+              <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black bg-red-500 text-white animate-pulse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
             {activeTab === item.tab && (
               <div className={`ml-auto w-1.5 h-1.5 rounded-full ring-4 ${
                 theme === 'dark' ? "bg-black ring-white" : "bg-white ring-black"
@@ -173,6 +180,8 @@ const Sidebar = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
+  
+  const { unreadCount } = useSocket();
   
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "dashboard";
@@ -229,7 +238,7 @@ const Sidebar = () => {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-[280px] h-screen fixed left-0 top-0 z-50 shadow-2xl">
-        <SidebarContent {...sidebarProps} />
+        <SidebarContent {...sidebarProps} unreadCount={unreadCount} />
       </aside>
 
       {/* Mobile Sidebar Overlay */}
@@ -246,7 +255,7 @@ const Sidebar = () => {
           isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
-        <SidebarContent {...sidebarProps} />
+        <SidebarContent {...sidebarProps} unreadCount={unreadCount} />
       </aside>
     </>
   );

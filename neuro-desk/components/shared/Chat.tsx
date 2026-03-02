@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/features/auth/authSlice';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { io, Socket } from 'socket.io-client';
+import { useSocket } from '@/components/providers/SocketProvider';
 import {
   BsSendFill, BsGlobe2, BsLockFill, BsPeopleFill,
   BsChevronLeft, BsSearch, BsCircleFill, BsXLg, BsShieldFill
@@ -89,18 +89,18 @@ const Chat: React.FC = () => {
   const { theme } = useTheme();
   const dk = theme === 'dark';
 
+  const { socket, onlineIds, clearUnread, unreadPrivate, clearUnreadFor } = useSocket();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [chatMode, setChatMode] = useState<ChatMode>('global');
   const [activeRecipient, setActiveRecipient] = useState<UserContact | null>(null);
   const [contacts, setContacts] = useState<UserContact[]>([]);
-  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
   const [showUsers, setShowUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Always-fresh refs for socket handler closure
   const chatModeRef = useRef<ChatMode>('global');
@@ -113,6 +113,9 @@ const Chat: React.FC = () => {
   useEffect(() => { activeRecipientRef.current = activeRecipient; }, [activeRecipient]);
   useEffect(() => { userRef.current = user; }, [user]);
 
+  // Clear sidebar unread badge when Chat mounts
+  useEffect(() => { clearUnread(); }, [clearUnread]);
+
   /* ── Fetch team members ── */
   useEffect(() => {
     api.get('/users/members')
@@ -122,39 +125,11 @@ const Chat: React.FC = () => {
       .catch(() => {});
   }, [user?._id]);
 
-  /* ── Socket setup ── */
+  /* ── Message handler — listens on global socket ── */
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
-    const socketUrl = apiBaseUrl.replace('/api', '');
+    if (!socket) return;
 
-    const s = io(socketUrl, { auth: { token } });
-    socketRef.current = s;
-
-    s.on('connect', () => {
-      console.log('[Chat] Socket connected');
-      s.emit('room:join', 'team_general');
-    });
-
-    /* Initial online list from server — exclude self */
-    s.on('presence:list', (ids: string[]) => {
-      const myId = userRef.current?._id;
-      setOnlineIds(new Set(ids.filter((id) => id !== myId)));
-    });
-
-    /* Incremental presence updates — exclude self */
-    s.on('presence:update', ({ userId, isOnline }: { userId: string; isOnline: boolean }) => {
-      const myId = userRef.current?._id;
-      if (userId === myId) return; // never track yourself
-      setOnlineIds((prev) => {
-        const next = new Set(prev);
-        if (isOnline) next.add(userId); else next.delete(userId);
-        return next;
-      });
-    });
-
-    /* ── MESSAGE HANDLER ── */
-    s.on('chat:message', (msg: Message) => {
+    const handler = (msg: Message) => {
       const mode = chatModeRef.current;
       const recipient = activeRecipientRef.current;
       const myId = userRef.current?._id ?? '';
@@ -189,7 +164,6 @@ const Chat: React.FC = () => {
         const otherParty = isFromMe ? msgRecipientId : msgSenderId;
 
         if (isToMe || isFromMe) {
-          // If we’re currently viewing this exact conversation, show inline
           const viewingThisConvo =
             mode === 'private' &&
             recipient != null &&
@@ -198,20 +172,19 @@ const Chat: React.FC = () => {
           if (viewingThisConvo) {
             setMessages(addOrReplace);
           } else {
-            // Buffer the message — we'll flush when the user opens this convo
             const buf = pendingPrivateRef.current;
             if (!buf[otherParty]) buf[otherParty] = [];
-            // Avoid duplicates in buffer
             if (!buf[otherParty].some((m) => m._id === msg._id)) {
               buf[otherParty].push(msg);
             }
           }
         }
       }
-    });
+    };
 
-    return () => { s.disconnect(); };
-  }, []);
+    socket.on('chat:message', handler);
+    return () => { socket.off('chat:message', handler); };
+  }, [socket]);
 
   /* ── Fetch history when mode / recipient changes ── */
   const fetchHistory = useCallback(async () => {
@@ -251,8 +224,7 @@ const Chat: React.FC = () => {
   /* ── Send message with optimistic local echo ── */
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    const s = socketRef.current;
-    if (!newMessage.trim() || !s) return;
+    if (!newMessage.trim() || !socket) return;
     const trimmed = newMessage.trim();
 
     // Optimistic: show the message immediately in the sender's UI
@@ -268,9 +240,9 @@ const Chat: React.FC = () => {
     setMessages((prev) => [...prev, optimisticMsg]);
 
     if (chatMode === 'global') {
-      s.emit('chat:message', { message: trimmed, roomId: 'team_general', roomType: 'global' });
+      socket.emit('chat:message', { message: trimmed, roomId: 'team_general', roomType: 'global' });
     } else if (activeRecipient) {
-      s.emit('chat:message', { message: trimmed, recipientId: activeRecipient._id, roomType: 'private' });
+      socket.emit('chat:message', { message: trimmed, recipientId: activeRecipient._id, roomType: 'private' });
     }
     setNewMessage('');
     inputRef.current?.focus();
@@ -297,6 +269,8 @@ const Chat: React.FC = () => {
       // Clear the buffer for this sender
       delete pendingPrivateRef.current[contact._id];
     }
+    // Clear unread count for this contact
+    clearUnreadFor(contact._id);
     if (window.innerWidth < 768) setShowUsers(false);
   };
 
@@ -304,7 +278,7 @@ const Chat: React.FC = () => {
   const switchToGlobal = () => {
     setChatMode('global');
     setActiveRecipient(null);
-    socketRef.current?.emit('room:join', 'team_general');
+    socket?.emit('room:join', 'team_general');
     if (window.innerWidth < 768) setShowUsers(false);
   };
 
@@ -449,6 +423,11 @@ const Chat: React.FC = () => {
                       </p>
                     </div>
                     {isActive && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+                    {!isActive && (unreadPrivate[contact._id] || 0) > 0 && (
+                      <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black bg-red-500 text-white shrink-0">
+                        {unreadPrivate[contact._id] > 99 ? '99+' : unreadPrivate[contact._id]}
+                      </span>
+                    )}
                   </button>
                 );
               }) : (
