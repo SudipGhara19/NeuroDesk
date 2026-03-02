@@ -2,6 +2,7 @@
 
 import { KBDocument } from './types';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { Archive, FileText, Book, File, ClipboardList, Paperclip } from 'lucide-react';
 
 interface Props {
   documents: KBDocument[];
@@ -37,11 +38,11 @@ const FILE_COLORS: Record<string, string> = {
   md: 'text-purple-400 bg-purple-500/10',
 };
 
-const FILE_ICONS: Record<string, string> = {
-  pdf: '📄',
-  docx: '📘',
-  txt: '📝',
-  md: '📋',
+const FILE_ICONS: Record<string, React.ReactNode> = {
+  pdf: <FileText className="w-5 h-5" />,
+  docx: <Book className="w-5 h-5" />,
+  txt: <File className="w-5 h-5" />,
+  md: <ClipboardList className="w-5 h-5" />,
 };
 
 function formatBytes(bytes: number): string {
@@ -87,7 +88,9 @@ export default function DocumentList({ documents, loading, onDelete }: Props) {
           ? (
             <div className={`flex flex-col items-center justify-center py-16 rounded-xl border border-dashed
               ${dark ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
-              <div className="text-4xl mb-3">🗄️</div>
+              <div className="text-4xl mb-3 text-gray-400">
+                <Archive className="w-12 h-12" />
+              </div>
               <p className="font-semibold text-sm">No documents yet</p>
               <p className="text-xs mt-1">Upload your first document to get started</p>
             </div>
@@ -95,7 +98,7 @@ export default function DocumentList({ documents, loading, onDelete }: Props) {
           : documents.map((doc) => {
             const status = STATUS_CONFIG[doc.status] ?? STATUS_CONFIG.processing;
             const fileColor = FILE_COLORS[doc.fileType] ?? FILE_COLORS.txt;
-            const fileIcon = FILE_ICONS[doc.fileType] ?? '📎';
+            const fileIcon = FILE_ICONS[doc.fileType] ?? <Paperclip className="w-5 h-5" />;
 
             return (
               <div

@@ -5,6 +5,7 @@ import { useTheme } from '@/components/providers/ThemeProvider';
 import DropZone from './DropZone';
 import { uploadDocument, pollDocumentStatus } from './api';
 import { KBDocument } from './types';
+import { Upload, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   onUploaded: (doc: KBDocument) => void;
@@ -76,9 +77,9 @@ export default function UploadPanel({ onUploaded }: Props) {
     }`}>
       {/* Header */}
       <div className={`px-6 py-4 border-b flex items-center gap-3 ${dark ? 'border-white/5' : 'border-gray-100'}`}>
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm
-          ${dark ? 'bg-violet-500/20' : 'bg-violet-100'}`}>
-          ⬆
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center
+          ${dark ? 'bg-violet-500/20 text-violet-400' : 'bg-violet-100 text-violet-600'}`}>
+          <Upload className="w-4 h-4" />
         </div>
         <div>
           <h3 className={`font-bold text-sm ${dark ? 'text-white' : 'text-gray-800'}`}>
@@ -96,7 +97,7 @@ export default function UploadPanel({ onUploaded }: Props) {
           <div className={`p-5 rounded-2xl border text-center space-y-3 ${
             dark ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-emerald-50 border-emerald-100'
           }`}>
-            <div className="text-3xl">✅</div>
+            <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500 mb-1" />
             <div>
               <p className="font-bold text-emerald-500">Successfully Synced!</p>
               <p className={`text-xs mt-0.5 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -181,7 +182,12 @@ export default function UploadPanel({ onUploaded }: Props) {
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   {phase === 'uploading' ? 'Uploading…' : 'Indexing…'}
                 </span>
-              ) : '⬆  Upload & Sync to Vector DB'}
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload & Sync to Vector DB
+                </span>
+              )}
             </button>
           </>
         )}

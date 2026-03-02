@@ -84,19 +84,24 @@ function buildPrompt(query, context) {
   return [
     {
       role: 'system',
-      content: `You are NeuroDesk AI, an expert knowledge assistant for the team's internal knowledge base.
+      content: `You are NeuroDesk AI, a friendly and helpful knowledge assistant for the team.
 
-Answer the user's question using ONLY the information provided in the context below.
+If the user sends a casual greeting (like "hi", "hello", "hey"), respond warmly and let them know you're ready to help with questions about their knowledge base.
+
+For knowledge-related questions, answer using the provided context.
 
 Rules:
-- Give a clear, direct, well-structured answer. Do NOT hedge with phrases like "according to the context" or "based on the provided context".
-- Do NOT include any inline source citations like [Source: ...] or [Chunk #...] in your reply — sources are displayed separately in the UI.
-- If the context genuinely does not contain enough information, say only: "I don't have enough information in the knowledge base to answer this."
-- Be concise and professional. Use bullet points or short paragraphs when appropriate.`,
+- Be friendly, natural, and conversational.
+- Give clear, direct, well-structured answers. Do NOT hedge with phrases like "according to the context".
+- Do NOT include inline source citations like [Source: ...] — sources are displayed separately in the UI.
+- If the context does not contain enough info, say so briefly and suggest what they could ask or upload.
+- Use bullet points or short paragraphs when appropriate.`,
     },
     {
       role: 'user',
-      content: `Context from knowledge base:\n\n${context}\n\n---\n\nQuestion: ${query}`,
+      content: context
+        ? `Context from knowledge base:\n\n${context}\n\n---\n\nQuestion: ${query}`
+        : query,
     },
   ];
 }
@@ -107,6 +112,33 @@ async function ragQuery(query, options = {}) {
   const startTime = Date.now();
   const topK = options.topK || 5;
   const namespaces = options.namespaces || [];
+  const model = options.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+  // Detect casual/conversational queries (greetings, thanks, etc.)
+  const casualPatterns = /^(hi|hello|hey|howdy|greetings|good\s*(morning|afternoon|evening)|thanks|thank\s*you|bye|goodbye|ok|okay|sure|yes|no|yo|sup|what's up|how are you)[!?.\s]*$/i;
+  if (casualPatterns.test(query.trim())) {
+    // Skip RAG entirely — let LLM handle it naturally
+    const messages = options.conversationHistory
+      ? [...options.conversationHistory, { role: 'user', content: query }]
+      : buildPrompt(query, '');
+    if (options.conversationHistory && messages[0]?.role !== 'system') {
+      messages.unshift(buildPrompt('', '')[0]);
+    }
+    const completion = await getGroq().chat.completions.create({
+      model,
+      messages,
+      temperature: 0.7,
+      max_tokens: 256,
+    });
+    return {
+      answer: completion.choices[0].message.content.trim(),
+      sources: [],
+      confidence: 1,
+      tokens_used: completion.usage?.total_tokens || 0,
+      latency_ms: Date.now() - startTime,
+      model,
+    };
+  }
 
   // 1. Embed query using local model (free)
   const queryEmbedding = await embedText(query);
@@ -114,26 +146,34 @@ async function ragQuery(query, options = {}) {
   // 2. Retrieve chunks
   const matches = await retrieveChunks(queryEmbedding, topK, namespaces);
 
-  // Fallback if no good matches
-  if (matches.length === 0 || (matches[0]?.score || 0) < 0.3) {
+  // Fallback if no good matches (lowered threshold from 0.3 → 0.15)
+  if (matches.length === 0 || (matches[0]?.score || 0) < 0.15) {
     return {
-      answer: "I don't have enough information in the knowledge base to answer this question. Please upload relevant documents first.",
+      answer: "I don't have enough information in the knowledge base to answer this question. Try rephrasing, or upload relevant documents.",
       sources: [],
       confidence: 0,
       tokens_used: 0,
       latency_ms: Date.now() - startTime,
+      model,
     };
   }
 
   // 3. Build context + sources
   const { context, sources, confidence } = buildContext(matches);
 
-  // 4. Build prompt
-  const messages = buildPrompt(query, context);
+  // 4. Build prompt (can include conversation history if provided)
+  const messages = options.conversationHistory
+    ? [...options.conversationHistory, { role: 'user', content: `Context from knowledge base:\n\n${context}\n\n---\n\nQuestion: ${query}` }]
+    : buildPrompt(query, context);
 
-  // 5. Call Groq LLM (free tier)
+  // If conversation history provided, prepend system prompt
+  if (options.conversationHistory && messages[0]?.role !== 'system') {
+    messages.unshift(buildPrompt('', '')[0]); // get system message
+  }
+
+  // 5. Call Groq LLM
   const completion = await getGroq().chat.completions.create({
-    model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+    model,
     messages,
     temperature: 0.2,
     max_tokens: 1024,
@@ -148,6 +188,7 @@ async function ragQuery(query, options = {}) {
     confidence,
     tokens_used: tokensUsed,
     latency_ms: Date.now() - startTime,
+    model,
   };
 }
 

@@ -14,7 +14,8 @@ import UserDashboard from '@/components/User/UserDashboard';
 import UserManagement from '@/components/shared/UserManagement';
 import UserProfile from '@/components/User/UserProfile';
 import Chat from '@/components/shared/Chat';
-import KnowledgeBase from '@/components/Manager/KnowledgeBase';
+import KnowledgeBase from '@/components/Admin/KnowledgeBase';
+import AiChat from '@/components/shared/AiChat';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -52,6 +53,10 @@ function DashboardContent() {
 
     if (activeTab === 'knowledge') {
       return <KnowledgeBase />;
+    }
+
+    if (activeTab === 'ai-chat') {
+      return <AiChat />;
     }
 
     // If not on 'dashboard' tab, show a generic "Under Construction" for other tabs
@@ -110,7 +115,7 @@ function DashboardContent() {
         </header>
 
         {/* Dynamic Content Area */}
-        {activeTab === 'team-chat' ? (
+        {(activeTab === 'team-chat' || activeTab === 'ai-chat') ? (
           <div className="h-[calc(100vh-5rem)] overflow-hidden">
             {renderContent()}
           </div>

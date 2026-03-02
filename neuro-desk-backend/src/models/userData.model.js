@@ -46,6 +46,7 @@ const userDataSchema = new mongoose.Schema({
     confidence: { type: Number },
     tokensUsed: { type: Number },
     latencyMs: { type: Number },
+    modelUsed: { type: String },       // which Groq model was used
     timestamp: { type: Date, default: Date.now }
   }],
 }, { timestamps: true });

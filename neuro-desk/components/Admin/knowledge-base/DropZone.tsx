@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { FileText, File, Book, ClipboardList, Paperclip, UploadCloud } from 'lucide-react';
 
 const ALLOWED = ['.pdf', '.txt', '.docx', '.md'];
 const ALLOWED_MIME = [
@@ -17,11 +18,11 @@ interface Props {
   disabled?: boolean;
 }
 
-const FILE_ICONS: Record<string, string> = {
-  pdf: '📄',
-  txt: '📝',
-  docx: '📘',
-  md: '📋',
+const FILE_ICONS: Record<string, React.ReactNode> = {
+  pdf: <FileText className="w-full h-full p-3" />,
+  txt: <File className="w-full h-full p-3" />,
+  docx: <Book className="w-full h-full p-3" />,
+  md: <ClipboardList className="w-full h-full p-3" />,
 };
 
 function formatBytes(bytes: number): string {
@@ -67,7 +68,7 @@ export default function DropZone({ onFileSelect, disabled }: Props) {
   };
 
   const ext = selectedFile?.name.split('.').pop()?.toLowerCase() ?? '';
-  const Icon = FILE_ICONS[ext] ?? '📎';
+  const Icon = FILE_ICONS[ext] ?? <Paperclip className="w-full h-full p-3" />;
 
   return (
     <div
@@ -129,13 +130,9 @@ export default function DropZone({ onFileSelect, disabled }: Props) {
               ? 'bg-violet-500/20 scale-110'
               : dark ? 'bg-white/5 group-hover:bg-violet-500/10' : 'bg-white group-hover:bg-violet-50'
             } shadow-sm`}>
-            <svg className={`w-8 h-8 transition-colors ${dragging ? 'text-violet-400' : dark ? 'text-gray-500 group-hover:text-violet-400' : 'text-gray-400 group-hover:text-violet-500'}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.338-2.32 5.75 5.75 0 0 1 1.442 11.095H6.75Z"/>
-            </svg>
+            <UploadCloud className={`w-8 h-8 transition-colors ${dragging ? 'text-violet-400' : dark ? 'text-gray-500 group-hover:text-violet-400' : 'text-gray-400 group-hover:text-violet-500'}`} />
           </div>
-          <div className="text-center">
+          <div className="text-center mt-2">
             <p className={`font-bold text-sm ${dark ? 'text-gray-300' : 'text-gray-700'}`}>
               Drop your file here, or <span className="text-violet-500">browse</span>
             </p>

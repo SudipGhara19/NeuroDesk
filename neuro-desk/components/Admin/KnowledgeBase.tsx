@@ -9,17 +9,18 @@ import DocumentList from './knowledge-base/DocumentList';
 import QueryPanel from './knowledge-base/QueryPanel';
 import { KBDocument, RAGResponse } from './knowledge-base/types';
 import { listDocuments, deleteDocument } from './knowledge-base/api';
+import { Lock, ClipboardList, Upload, Search, Brain, BookOpen, CheckCircle2, Clock, Hash, FileText } from 'lucide-react';
 
 type ActiveTab = 'documents' | 'upload' | 'query';
 
 interface ConfirmState { open: boolean; doc: KBDocument | null; }
 
 function StatCard({ label, value, icon, color, dark }: {
-  label: string; value: string | number; icon: string; color: string; dark: boolean;
+  label: string; value: string | number; icon: React.ReactNode; color: string; dark: boolean;
 }) {
   return (
     <div className={`flex items-center gap-3 p-4 rounded-xl border ${dark ? 'bg-white/3 border-white/5' : 'bg-white border-gray-100'}`}>
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg ${color}`}>{icon}</div>
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       <div>
         <p className={`text-xl font-black leading-none ${dark ? 'text-white' : 'text-gray-800'}`}>{value}</p>
         <p className={`text-[11px] font-semibold mt-0.5 uppercase tracking-wider ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</p>
@@ -90,7 +91,9 @@ export default function KnowledgeBase() {
     return (
       <div className={`rounded-2xl border flex flex-col items-center justify-center py-20 gap-4
         ${dark ? 'bg-white/3 border-white/5 text-gray-400' : 'bg-white border-gray-100 text-gray-400'}`}>
-        <div className="text-5xl">🔒</div>
+        <div className="text-gray-500 mb-2">
+          <Lock className="w-12 h-12" />
+        </div>
         <p className="font-bold">Access Restricted</p>
         <p className="text-sm">Only Admins and Managers can manage the Knowledge Base.</p>
       </div>
@@ -98,9 +101,9 @@ export default function KnowledgeBase() {
   }
 
   const TABS = [
-    { id: 'documents' as ActiveTab, label: 'Documents', icon: '📋' },
-    { id: 'upload'    as ActiveTab, label: 'Upload',    icon: '⬆'  },
-    { id: 'query'     as ActiveTab, label: 'Query AI',  icon: '🔍' },
+    { id: 'documents' as ActiveTab, label: 'Documents', icon: <ClipboardList className="w-4 h-4" /> },
+    { id: 'upload'    as ActiveTab, label: 'Upload',    icon: <Upload className="w-4 h-4" />  },
+    { id: 'query'     as ActiveTab, label: 'Query AI',  icon: <Search className="w-4 h-4" /> },
   ];
 
   return (
@@ -113,8 +116,10 @@ export default function KnowledgeBase() {
 
         <div className="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-lg
-              ${dark ? 'bg-violet-500/20' : 'bg-violet-100'}`}>🧠</div>
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg
+              ${dark ? 'bg-violet-500/20 text-violet-400' : 'bg-violet-100 text-violet-600'}`}>
+              <Brain className="w-6 h-6" />
+            </div>
             <div>
               <h2 className={`text-xl font-black ${dark ? 'text-white' : 'text-gray-800'}`}>Knowledge Base</h2>
               <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Upload, index & query via Pinecone RAG</p>
@@ -133,10 +138,10 @@ export default function KnowledgeBase() {
 
         {/* Stats strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 pb-4">
-          <StatCard label="Total Docs"    value={documents.length}              icon="📚" color={dark ? 'bg-violet-500/20' : 'bg-violet-100'}  dark={dark} />
-          <StatCard label="Indexed"       value={ready}                          icon="✅" color={dark ? 'bg-emerald-500/20' : 'bg-emerald-100'} dark={dark} />
-          <StatCard label="Processing"    value={processing}                     icon="⏳" color={dark ? 'bg-amber-500/20'   : 'bg-amber-100'}   dark={dark} />
-          <StatCard label="Total Chunks"  value={totalChunks.toLocaleString()}  icon="🔢" color={dark ? 'bg-blue-500/20'    : 'bg-blue-100'}    dark={dark} />
+          <StatCard label="Total Docs"    value={documents.length}              icon={<BookOpen className="w-4 h-4" />} color={dark ? 'bg-violet-500/20 text-violet-400' : 'bg-violet-100 text-violet-600'}  dark={dark} />
+          <StatCard label="Indexed"       value={ready}                          icon={<CheckCircle2 className="w-4 h-4" />} color={dark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'} dark={dark} />
+          <StatCard label="Processing"    value={processing}                     icon={<Clock className="w-4 h-4" />} color={dark ? 'bg-amber-500/20 text-amber-400'   : 'bg-amber-100 text-amber-600'}   dark={dark} />
+          <StatCard label="Total Chunks"  value={totalChunks.toLocaleString()}  icon={<Hash className="w-4 h-4" />} color={dark ? 'bg-blue-500/20 text-blue-400'    : 'bg-blue-100 text-blue-600'}    dark={dark} />
         </div>
 
         {/* Tab nav */}
@@ -217,8 +222,8 @@ export default function KnowledgeBase() {
               </div>
             </div>
 
-            <div className={`p-3 rounded-xl text-sm font-semibold ${dark ? 'bg-white/5 text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
-              📄 {confirm.doc?.title}
+            <div className={`p-3 rounded-xl text-sm font-semibold flex items-center gap-1.5 ${dark ? 'bg-white/5 text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+              <FileText className="w-4 h-4" /> {confirm.doc?.title}
               <span className={`ml-2 text-xs font-normal ${dark ? 'text-gray-500' : 'text-gray-400'}`}>
                 · uploaded by {(confirm.doc?.uploadedBy as { fullName?: string })?.fullName ?? '—'}
                 · {confirm.doc?.chunkCount ?? 0} chunks

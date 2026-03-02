@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/auth.routes');
 const userRoutes = require('./src/routes/user.routes');
 const chatRoutes = require('./src/routes/chat.routes');
 const documentRoutes = require('./src/routes/document.routes');
+const aiChatRoutes = require('./src/routes/ai-chat.routes');
 const errorMiddleware = require('./src/middlewares/error.middleware');
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/ai-chat', aiChatRoutes);
 
 app.get('/', (req, res) => {
   res.send('NeuroDesk API is running with Socket.io...');

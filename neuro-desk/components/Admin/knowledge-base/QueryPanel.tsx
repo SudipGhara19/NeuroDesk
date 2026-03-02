@@ -3,6 +3,7 @@
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { RAGResponse } from './types';
 import { queryKnowledgeBase } from './api';
+import { Search, FileText } from 'lucide-react';
 
 interface Props {
   // Lifted state — managed by parent so result persists across tab switches
@@ -53,9 +54,9 @@ export default function QueryPanel({
     }`}>
       {/* Header */}
       <div className={`px-6 py-4 border-b flex items-center gap-3 shrink-0 ${dark ? 'border-white/5' : 'border-gray-100'}`}>
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm
-          ${dark ? 'bg-violet-500/20' : 'bg-violet-100'}`}>
-          🔍
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center
+          ${dark ? 'bg-violet-500/20 text-violet-400' : 'bg-violet-100 text-violet-600'}`}>
+          <Search className="w-4 h-4" />
         </div>
         <div>
           <h3 className={`font-bold text-sm ${dark ? 'text-white' : 'text-gray-800'}`}>
@@ -151,7 +152,7 @@ export default function QueryPanel({
                   {result.sources.map((src) => (
                     <span key={src} className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full
                       ${dark ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                      📄 {src}
+                      <FileText className="w-3.5 h-3.5" /> {src}
                     </span>
                   ))}
                 </div>
