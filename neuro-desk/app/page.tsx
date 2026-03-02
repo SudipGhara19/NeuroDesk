@@ -14,6 +14,7 @@ import UserDashboard from '@/components/User/UserDashboard';
 import UserManagement from '@/components/shared/UserManagement';
 import UserProfile from '@/components/User/UserProfile';
 import Chat from '@/components/shared/Chat';
+import KnowledgeBase from '@/components/Manager/KnowledgeBase';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -47,6 +48,10 @@ function DashboardContent() {
 
     if (activeTab === 'team-chat') {
       return <Chat />;
+    }
+
+    if (activeTab === 'knowledge') {
+      return <KnowledgeBase />;
     }
 
     // If not on 'dashboard' tab, show a generic "Under Construction" for other tabs
