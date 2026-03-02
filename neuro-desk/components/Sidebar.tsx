@@ -25,10 +25,10 @@ import {
   BsXLg,
   BsList,
   BsBoxArrowRight,
-  BsChatLeftTextFill,
   BsChatDotsFill,
   BsSunFill,
-  BsMoonStarsFill
+  BsMoonStarsFill,
+  BsRobot
 } from "react-icons/bs";
 
 interface SidebarItem {
@@ -40,7 +40,7 @@ interface SidebarItem {
 const roleMenus: Record<string, SidebarItem[]> = {
   Admin: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "AI Assistant", icon: <BsRobot />, tab: "ai-chat" },
     { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
@@ -50,15 +50,16 @@ const roleMenus: Record<string, SidebarItem[]> = {
   ],
   Manager: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "AI Assistant", icon: <BsRobot />, tab: "ai-chat" },
     { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Knowledge Base", icon: <BsBriefcaseFill />, tab: "knowledge" },
     { name: "User Management", icon: <BsPeopleFill />, tab: "users" },
+    { name: "System Analytics", icon: <BsBarChartFill />, tab: "analytics" },
     { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],
   User: [
     { name: "Dashboard", icon: <BsGrid1X2Fill />, tab: "dashboard" },
-    { name: "AI Assistant", icon: <BsChatLeftTextFill />, tab: "ai-chat" },
+    { name: "AI Assistant", icon: <BsRobot />, tab: "ai-chat" },
     { name: "Chats", icon: <BsChatDotsFill />, tab: "team-chat" },
     { name: "Profile", icon: <BsPersonCircle />, tab: "profile" },
   ],

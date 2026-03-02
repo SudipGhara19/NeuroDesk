@@ -16,6 +16,7 @@ import UserProfile from '@/components/User/UserProfile';
 import Chat from '@/components/shared/Chat';
 import KnowledgeBase from '@/components/Admin/KnowledgeBase';
 import AiChat from '@/components/shared/AiChat';
+import SystemAnalytics from '@/components/Admin/SystemAnalytics';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -39,6 +40,10 @@ function DashboardContent() {
 
   const renderContent = () => {
     // Shared routed tabs (available to multiple roles)
+    if (activeTab === 'analytics' && (role === 'Admin' || role === 'Manager')) {
+      return <SystemAnalytics />;
+    }
+
     if (activeTab === 'users' && (role === 'Admin' || role === 'Manager')) {
       return <UserManagement viewMode={role === 'Admin' ? 'admin' : 'manager'} />;
     }
