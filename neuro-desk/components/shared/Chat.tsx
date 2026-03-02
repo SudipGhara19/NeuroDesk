@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/features/auth/authSlice';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSocket } from '@/components/providers/SocketProvider';
+import { useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 
 import { Message, UserContact, ChatMode } from './chat/types';
@@ -35,6 +36,9 @@ const Chat: React.FC = () => {
   const activeRecipientRef = useRef<UserContact | null>(null);
   const userRef = useRef(user);
   const pendingPrivateRef = useRef<Record<string, Message[]>>({});
+
+  const searchParams = useSearchParams();
+  const chatUserId = searchParams.get('chatUser');
 
   useEffect(() => { chatModeRef.current = chatMode; }, [chatMode]);
   useEffect(() => { activeRecipientRef.current = activeRecipient; }, [activeRecipient]);
@@ -184,6 +188,21 @@ const Chat: React.FC = () => {
     clearUnreadFor(contact._id);
     if (window.innerWidth < 768) setShowUsers(false);
   };
+
+  /* ── Handle deep-linked chat user from URL ── */
+  useEffect(() => {
+    if (chatUserId && contacts.length > 0) {
+      const contact = contacts.find(c => c._id === chatUserId);
+      if (contact && activeRecipient?._id !== contact._id) {
+        handleSelectUser(contact);
+        // Remove param from URL so it doesn't persist
+        const url = new URL(window.location.href);
+        url.searchParams.delete('chatUser');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatUserId, contacts]);
 
   /* ── Switch to global ── */
   const switchToGlobal = () => {

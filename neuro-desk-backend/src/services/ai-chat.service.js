@@ -185,6 +185,7 @@ async function trackAnalytics(userId, queryText, result, model) {
       $inc: {
         'stats.totalQueries': 1,
         'stats.totalTokensUsed': result.tokens_used || 0,
+        'stats.totalCostEstimate': (result.tokens_used || 0) * 0.0000005, // Estimate: $0.50 per 1M tokens
         'analytics.queryFrequency.daily': 1,
         'analytics.queryFrequency.weekly': 1,
         'analytics.queryFrequency.monthly': 1,

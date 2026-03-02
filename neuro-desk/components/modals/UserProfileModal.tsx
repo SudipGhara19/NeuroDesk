@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   BsXLg, BsEnvelopeFill, BsShieldLockFill, BsCalendarCheck, 
-  BsRobot, BsTelephoneFill, BsGeoAltFill, BsBuilding, BsGraphUp, 
-  BsClockHistory, BsFileEarmarkTextFill, BsLightningFill, BsCashStack,
-  BsLightbulbFill
+  BsRobot, BsTelephoneFill, BsGeoAltFill, BsBuilding, BsClockHistory
 } from 'react-icons/bs';
 import { UserRecord } from '@/lib/features/users/usersSlice';
 
@@ -15,7 +13,6 @@ interface UserProfileModalProps {
 }
 
 export default function UserProfileModal({ isOpen, onClose, user, theme }: UserProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics'>('overview');
   if (!isOpen || !user) return null;
 
   const isOnline = user.presence?.isOnline || false;
@@ -38,30 +35,6 @@ export default function UserProfileModal({ isOpen, onClose, user, theme }: UserP
             <h2 className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               User Profile
             </h2>
-            <div className={`flex overflow-hidden rounded-lg border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
-              <button 
-                onClick={() => setActiveTab('overview')}
-                className={`px-4 py-1.5 text-sm font-bold transition-colors ${
-                  activeTab === 'overview' 
-                    ? (theme === 'dark' ? 'bg-primary text-white' : 'bg-primary text-white')
-                    : (theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600')
-                }`}
-              >
-                Overview
-              </button>
-              <button 
-                onClick={() => setActiveTab('analytics')}
-                className={`px-4 py-1.5 text-sm font-bold transition-colors border-l ${
-                  theme === 'dark' ? 'border-white/10' : 'border-gray-200'
-                } ${
-                  activeTab === 'analytics' 
-                    ? (theme === 'dark' ? 'bg-primary text-white' : 'bg-primary text-white')
-                    : (theme === 'dark' ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-50 text-gray-600')
-                }`}
-              >
-                Analytics
-              </button>
-            </div>
           </div>
           <button 
             onClick={onClose}
@@ -107,7 +80,7 @@ export default function UserProfileModal({ isOpen, onClose, user, theme }: UserP
             </div>
             
             {/* Quick Stats Sidebar-ish */}
-            {user.stats && activeTab === 'overview' && (
+            {user.stats && (
               <div className={`hidden lg:flex flex-col gap-2 p-4 rounded-xl border shrink-0 min-w-48 ${
                 theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'
               }`}>
@@ -119,80 +92,16 @@ export default function UserProfileModal({ isOpen, onClose, user, theme }: UserP
             )}
           </div>
 
-          {activeTab === 'overview' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <InfoCard icon={<BsEnvelopeFill />} label="Email Address" value={user.email} theme={theme} />
-              {user.phone && <InfoCard icon={<BsTelephoneFill />} label="Phone Number" value={user.phone} theme={theme} />}
-              {user.address && <InfoCard icon={<BsGeoAltFill />} label="Location" value={user.address} theme={theme} />}
-              {user.department && <InfoCard icon={<BsBuilding />} label="Department" value={user.department} theme={theme} />}
-              <InfoCard icon={<BsShieldLockFill />} label="Role" value={user.role} theme={theme} />
-              <InfoCard icon={<BsCalendarCheck />} label="Member Since" value={new Date(user.createdAt).toLocaleDateString()} theme={theme} />
-              <InfoCard icon={<BsRobot />} label="AI Assistant" value={user.isAiRestricted ? 'Restricted' : 'Allowed'} theme={theme} />
-              <InfoCard icon={<BsClockHistory />} label="Last Seen" value={user.presence?.lastSeen ? new Date(user.presence.lastSeen).toLocaleString() : 'Never'} theme={theme} />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-8">
-              {/* Detailed AI Stats */}
-              <div>
-                <h4 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Usage Statistics</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                  <StatCard icon={<BsGraphUp />} label="Queries" value={user.stats?.totalQueries?.toString() || '0'} theme={theme} />
-                  <StatCard icon={<BsFileEarmarkTextFill />} label="Documents" value={user.stats?.docsUploaded?.toString() || '0'} theme={theme} />
-                  <StatCard icon={<BsLightningFill />} label="Tokens Used" value={user.stats?.totalTokensUsed?.toLocaleString() || '0'} theme={theme} />
-                  <StatCard icon={<BsClockHistory />} label="Error Rate" value={`${(user.stats?.errorRate || 0)}%`} theme={theme} />
-                  <StatCard icon={<BsCashStack />} label="Est. Cost" value={`$${(user.stats?.totalCostEstimate || 0).toFixed(2)}`} theme={theme} />
-                </div>
-              </div>
-
-              {/* Insights & History */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Popular Searches */}
-                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
-                  <h4 className={`text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <BsLightbulbFill className="text-yellow-500" /> Popular Patterns
-                  </h4>
-                  {user.analytics?.popularSearchPatterns && user.analytics.popularSearchPatterns.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {user.analytics.popularSearchPatterns.map((pattern, idx) => (
-                        <span key={idx} className={`px-3 py-1.5 text-xs font-bold rounded-lg ${
-                          theme === 'dark' ? 'bg-white/10 text-gray-300' : 'bg-white border text-gray-700'
-                        }`}>
-                          {pattern}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No significant search patterns identified yet.</p>
-                  )}
-                </div>
-
-                {/* Session History */}
-                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
-                  <h4 className={`text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <BsClockHistory className="text-primary" /> Recent Sessions
-                  </h4>
-                  {user.analytics?.sessionHistory && user.analytics.sessionHistory.length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      {user.analytics.sessionHistory.slice(0, 4).map((session, idx) => (
-                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg text-sm ${
-                          theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white border'
-                        }`}>
-                          <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                            {session.startTime ? new Date(session.startTime).toLocaleDateString() : 'Unknown Date'}
-                          </div>
-                          <div className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {session.durationMs ? `${Math.round(session.durationMs / 60000)} mins` : '--'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No recent sessions recorded.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <InfoCard icon={<BsEnvelopeFill />} label="Email Address" value={user.email} theme={theme} />
+            {user.phone && <InfoCard icon={<BsTelephoneFill />} label="Phone Number" value={user.phone} theme={theme} />}
+            {user.address && <InfoCard icon={<BsGeoAltFill />} label="Location" value={user.address} theme={theme} />}
+            {user.department && <InfoCard icon={<BsBuilding />} label="Department" value={user.department} theme={theme} />}
+            <InfoCard icon={<BsShieldLockFill />} label="Role" value={user.role} theme={theme} />
+            <InfoCard icon={<BsCalendarCheck />} label="Member Since" value={new Date(user.createdAt).toLocaleDateString()} theme={theme} />
+            <InfoCard icon={<BsRobot />} label="AI Assistant" value={user.isAiRestricted ? 'Restricted' : 'Allowed'} theme={theme} />
+            <InfoCard icon={<BsClockHistory />} label="Last Seen" value={user.presence?.lastSeen ? new Date(user.presence.lastSeen).toLocaleString() : 'Never'} theme={theme} />
+          </div>
         </div>
       </div>
     </div>
@@ -242,26 +151,6 @@ function InfoCard({ icon, label, value, theme }: { icon: React.ReactNode; label:
         <p className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
           {value}
         </p>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, theme }: { icon: React.ReactNode; label: string; value: string; theme: string }) {
-  return (
-    <div className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center ${
-      theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'
-    }`}>
-      <div className={`p-3 rounded-full mb-3 ${
-        theme === 'dark' ? 'bg-white/10 text-primary-light' : 'bg-white shadow-sm text-primary border border-gray-100'
-      }`}>
-        {icon}
-      </div>
-      <div className={`text-2xl font-black mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-        {value}
-      </div>
-      <div className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-        {label}
       </div>
     </div>
   );

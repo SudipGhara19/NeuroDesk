@@ -12,6 +12,7 @@ import {
 import ConfirmModal from './ConfirmModal';
 import CreateManagerModal from '../Admin/CreateManagerModal';
 import UserProfileModal from '../modals/UserProfileModal';
+import AnalyticsModal from '../modals/AnalyticsModal';
 import UserRow from './UserRow';
 import SkeletonCard from './UserListSkeleton';
 
@@ -35,6 +36,7 @@ export default function UserManagement({ viewMode }: Props) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [showCreateManager, setShowCreateManager] = useState(false);
   const [selectedProfileUser, setSelectedProfileUser] = useState<UserRecord | null>(null);
+  const [selectedStatsUser, setSelectedStatsUser] = useState<UserRecord | null>(null);
   
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -226,6 +228,7 @@ export default function UserManagement({ viewMode }: Props) {
                     viewMode={viewMode}
                     onAction={handleActionClick}
                     onViewProfile={setSelectedProfileUser}
+                    onViewStats={setSelectedStatsUser}
                   />
                 ))}
         </div>
@@ -271,6 +274,13 @@ export default function UserManagement({ viewMode }: Props) {
         isOpen={!!selectedProfileUser}
         onClose={() => setSelectedProfileUser(null)}
         user={selectedProfileUser}
+        theme={theme}
+      />
+
+      <AnalyticsModal
+        isOpen={!!selectedStatsUser}
+        onClose={() => setSelectedStatsUser(null)}
+        user={selectedStatsUser}
         theme={theme}
       />
     </div>

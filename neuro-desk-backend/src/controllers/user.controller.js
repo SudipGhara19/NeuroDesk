@@ -7,8 +7,28 @@ const bcrypt = require('bcryptjs');
 // @access  Private/Admin/Manager
 const getUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-password');
-    res.json(users);
+    const users = await User.find().select('-password').lean();
+    const userIds = users.map(u => u._id);
+    const userDatas = await UserData.find({ userId: { $in: userIds } }).lean();
+
+    const populatedUsers = users.map(user => {
+      const data = userDatas.find(d => d.userId.toString() === user._id.toString());
+      if (data) {
+        return {
+          ...user,
+          phone: data.phone,
+          address: data.address,
+          department: data.department,
+          bio: data.bio,
+          stats: data.stats,
+          presence: data.presence,
+          analytics: data.analytics
+        };
+      }
+      return user;
+    });
+
+    res.json(populatedUsers);
   } catch (error) {
     next(error);
   }

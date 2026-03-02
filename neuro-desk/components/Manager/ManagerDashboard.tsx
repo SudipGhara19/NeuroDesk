@@ -7,6 +7,8 @@ import { fetchUsers, selectAllUsers, selectUsersLoading, selectUsersError } from
 import { selectCurrentUser } from '@/lib/features/auth/authSlice';
 import { AppDispatch } from '@/lib/store';
 import Link from 'next/link';
+import AggregateCharts from '../shared/analytics/AggregateCharts';
+import { useSocket } from '@/components/providers/SocketProvider';
 
 function StatItem({ label, value, color, loading, theme }: {
   label: string; value: number; color: string; loading: boolean; theme: string;
@@ -52,6 +54,7 @@ export default function ManagerDashboard() {
   const loading = useSelector(selectUsersLoading);
   const error = useSelector(selectUsersError);
   const currentUser = useSelector(selectCurrentUser);
+  const { onlineIds } = useSocket();
 
   useEffect(() => {
     if (allUsers.length === 0) {
@@ -147,6 +150,9 @@ export default function ManagerDashboard() {
           </p>
         </div> */}
 
+        {/* Aggregate Network Charts for the Team */}
+        <AggregateCharts users={teamMembers} theme={theme} />
+
         {/* Error state */}
         {error && (
           <div className={`p-4 rounded-xl border text-sm font-medium ${
@@ -188,7 +194,10 @@ export default function ManagerDashboard() {
                 <tbody>
                   {loading
                     ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} theme={theme} />)
-                    : teamMembers.map((member) => (
+                    : teamMembers
+                        .filter(member => member._id !== currentUser?._id)
+                        .slice(0, 5)
+                        .map((member) => (
                         <tr
                           key={member._id}
                           className={`border-b last:border-0 transition-colors ${
@@ -214,7 +223,7 @@ export default function ManagerDashboard() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            {currentUser?._id === member._id ? (
+                            {onlineIds.has(member._id) ? (
                               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400">
                                 <span className="relative flex h-2 w-2">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />

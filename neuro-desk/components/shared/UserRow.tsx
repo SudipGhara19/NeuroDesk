@@ -37,13 +37,17 @@ function ActionBtn({
   );
 }
 
+import { useRouter } from 'next/navigation';
+
 export default function UserRow({
-  user, isSelf, theme, viewMode, onAction, onViewProfile
+  user, isSelf, theme, viewMode, onAction, onViewProfile, onViewStats
 }: {
   user: UserRecord; isSelf: boolean; theme: string; viewMode: 'admin' | 'manager';
   onAction: (u: UserRecord, act: 'block' | 'unblock' | 'restrictAi' | 'allowAi' | 'delete') => void;
   onViewProfile?: (u: UserRecord) => void;
+  onViewStats?: (u: UserRecord) => void;
 }) {
+  const router = useRouter();
   const initials = user.fullName
     .split(' ')
     .map((n) => n[0])
@@ -139,9 +143,21 @@ export default function UserRow({
           />
         )}
 
-        <ActionBtn icon={<BsChatDotsFill />} label="Chat" theme={theme} />
-        <ActionBtn icon={<BsBarChartFill />} label="Stats" theme={theme} />
-        {user.role !== 'Manager' && user.role !== 'Admin' && (
+        <ActionBtn 
+          icon={<BsChatDotsFill />} 
+          label="Chat" 
+          theme={theme}
+          onClick={() => {
+            router.push(`/?tab=team-chat&chatUser=${user._id}`);
+          }}
+        />
+        <ActionBtn 
+          icon={<BsBarChartFill />} 
+          label="Stats" 
+          theme={theme} 
+          onClick={() => onViewStats?.(user)}
+        />
+        {user.role !== 'Admin' && (
           <ActionBtn 
             icon={<BsPersonBadge />} 
             label="Profile" 

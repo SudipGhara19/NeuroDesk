@@ -27,6 +27,11 @@ export interface UserRecord {
     lastSeen?: string;
   };
   analytics?: {
+    queryFrequency?: {
+      daily?: number;
+      weekly?: number;
+      monthly?: number;
+    };
     popularSearchPatterns?: string[];
     sessionHistory?: {
       startTime?: string;

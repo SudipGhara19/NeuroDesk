@@ -7,6 +7,8 @@ import { fetchUsers, selectAllUsers, selectUsersLoading, selectUsersError } from
 import { selectCurrentUser } from '@/lib/features/auth/authSlice';
 import { AppDispatch } from '@/lib/store';
 import Link from 'next/link';
+import AggregateCharts from '../shared/analytics/AggregateCharts';
+import { useSocket } from '@/components/providers/SocketProvider';
 
 // Role badge colours
 const roleBadge: Record<string, string> = {
@@ -55,6 +57,7 @@ export default function AdminDashboard() {
   const loading = useSelector(selectUsersLoading);
   const error = useSelector(selectUsersError);
   const currentUser = useSelector(selectCurrentUser);
+  const { onlineIds } = useSocket();
 
   useEffect(() => {
     if (users.length === 0) {
@@ -124,6 +127,9 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* Aggregate Network Charts */}
+        <AggregateCharts users={users} theme={theme} />
+
         {/* Error state */}
         {error && (
           <div className={`p-4 rounded-xl border text-sm font-medium ${
@@ -166,7 +172,10 @@ export default function AdminDashboard() {
                 <tbody>
                   {loading
                     ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} theme={theme} />)
-                    : users.map((user) => (
+                    : users
+                        .filter(user => user._id !== currentUser?._id)
+                        .slice(0, 5)
+                        .map((user) => (
                         <tr
                           key={user._id}
                           className={`border-b last:border-0 transition-colors ${
@@ -192,7 +201,7 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            {currentUser?._id === user._id ? (
+                            {onlineIds.has(user._id) ? (
                               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400">
                                 <span className="relative flex h-2 w-2">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
