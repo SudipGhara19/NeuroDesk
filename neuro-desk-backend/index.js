@@ -22,6 +22,8 @@ const allowedOrigin = process.env.ENVIRONMENT === 'prod'
   ? "https://neuro-desk-steel.vercel.app" 
   : "http://localhost:3000";
 
+
+  
 const corsOptions = {
   origin: allowedOrigin,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
