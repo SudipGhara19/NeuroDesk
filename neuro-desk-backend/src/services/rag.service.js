@@ -9,6 +9,7 @@ const Groq = require('groq-sdk');
 const { embedText } = require('./embedding.service');
 const { getPineconeIndex } = require('../config/pinecone');
 const Document = require('../models/document.model');
+const Settings = require('../models/settings.model');
 
 // Lazy Groq client
 let _groq = null;
@@ -80,22 +81,11 @@ function buildContext(matches) {
 
 // ─── Prompt ───────────────────────────────────────────────────────────────────
 
-function buildPrompt(query, context) {
+function buildPrompt(query, context, systemPrompt) {
   return [
     {
       role: 'system',
-      content: `You are NeuroDesk AI, a friendly and helpful knowledge assistant for the team.
-
-If the user sends a casual greeting (like "hi", "hello", "hey"), respond warmly and let them know you're ready to help with questions about their knowledge base.
-
-For knowledge-related questions, answer using the provided context.
-
-Rules:
-- Be friendly, natural, and conversational.
-- Give clear, direct, well-structured answers. Do NOT hedge with phrases like "according to the context".
-- Do NOT include inline source citations like [Source: ...] — sources are displayed separately in the UI.
-- If the context does not contain enough info, say so briefly and suggest what they could ask or upload.
-- Use bullet points or short paragraphs when appropriate.`,
+      content: systemPrompt || "You are a helpful assistant.",
     },
     {
       role: 'user',
@@ -112,7 +102,11 @@ async function ragQuery(query, options = {}) {
   const startTime = Date.now();
   const topK = options.topK || 5;
   const namespaces = options.namespaces || [];
-  const model = options.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+  // Fetch live system settings to apply dynamic modifications
+  const settings = await Settings.getSystemSettings();
+  const model = options.model || settings.defaultAiModel || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+  const customPrompt = settings.customSystemPrompt;
 
   // Detect casual/conversational queries (greetings, thanks, etc.)
   const casualPatterns = /^(hi|hello|hey|howdy|greetings|good\s*(morning|afternoon|evening)|thanks|thank\s*you|bye|goodbye|ok|okay|sure|yes|no|yo|sup|what's up|how are you)[!?.\s]*$/i;
@@ -120,9 +114,9 @@ async function ragQuery(query, options = {}) {
     // Skip RAG entirely — let LLM handle it naturally
     const messages = options.conversationHistory
       ? [...options.conversationHistory, { role: 'user', content: query }]
-      : buildPrompt(query, '');
+      : buildPrompt(query, '', customPrompt);
     if (options.conversationHistory && messages[0]?.role !== 'system') {
-      messages.unshift(buildPrompt('', '')[0]);
+      messages.unshift(buildPrompt('', '', customPrompt)[0]);
     }
     const completion = await getGroq().chat.completions.create({
       model,
@@ -164,11 +158,11 @@ async function ragQuery(query, options = {}) {
   // 4. Build prompt (can include conversation history if provided)
   const messages = options.conversationHistory
     ? [...options.conversationHistory, { role: 'user', content: `Context from knowledge base:\n\n${context}\n\n---\n\nQuestion: ${query}` }]
-    : buildPrompt(query, context);
+    : buildPrompt(query, context, customPrompt);
 
   // If conversation history provided, prepend system prompt
   if (options.conversationHistory && messages[0]?.role !== 'system') {
-    messages.unshift(buildPrompt('', '')[0]); // get system message
+    messages.unshift(buildPrompt('', '', customPrompt)[0]); // get system message
   }
 
   // 5. Call Groq LLM

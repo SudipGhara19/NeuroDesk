@@ -131,7 +131,7 @@ export default function AnalyticsDashboard({ user, theme }: AnalyticsDashboardPr
               }`}>
                 <BsGraphUp className="text-3xl mb-2 opacity-50" />
                 <p className="text-sm font-bold">No patterns identified yet</p>
-                <p className="text-xs mt-1 max-w-[200px]">The user hasn't made enough consistent queries to form patterns.</p>
+                <p className="text-xs mt-1 max-w-[200px]">The user hasn&apos;t made enough consistent queries to form patterns.</p>
               </div>
             )}
           </div>

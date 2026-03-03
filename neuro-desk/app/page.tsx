@@ -17,6 +17,7 @@ import Chat from '@/components/shared/Chat';
 import KnowledgeBase from '@/components/Admin/KnowledgeBase';
 import AiChat from '@/components/shared/AiChat';
 import SystemAnalytics from '@/components/Admin/SystemAnalytics';
+import Settings from '@/components/Admin/Settings';
 
 function DashboardContent() {
   const user = useSelector(selectCurrentUser);
@@ -62,6 +63,10 @@ function DashboardContent() {
 
     if (activeTab === 'ai-chat') {
       return <AiChat />;
+    }
+
+    if (activeTab === 'settings' && role === 'Admin') {
+      return <Settings />;
     }
 
     // If not on 'dashboard' tab, show a generic "Under Construction" for other tabs

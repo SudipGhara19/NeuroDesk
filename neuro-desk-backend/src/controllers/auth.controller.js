@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const UserData = require('../models/userData.model');
+const Settings = require('../models/settings.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/email.service');
@@ -17,6 +18,13 @@ const signup = async (req, res, next) => {
   const { fullName, email, password, role } = req.body;
 
   try {
+    // 1. Check if registration is allowed by Admin
+    const settings = await Settings.getSystemSettings();
+    if (!settings.allowRegistration) {
+      res.status(403);
+      throw new Error('User registration is currently disabled by the administrator.');
+    }
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {
