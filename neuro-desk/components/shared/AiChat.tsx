@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/features/auth/authSlice';
+import type { RootState } from '@/lib/store';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 import type { AiModel, AiMessage, AiSession, AiSessionSummary } from './ai-chat/types';
@@ -14,6 +15,7 @@ import {
   fetchSession,
   deleteSessionApi,
   sendMessageApi,
+  streamMessageApi,
 } from './ai-chat/api';
 
 import SessionSidebar from './ai-chat/SessionSidebar';
@@ -28,6 +30,7 @@ export default function AiChat() {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   const user = useSelector(selectCurrentUser);
+  const accessToken = useSelector((state: RootState) => state.auth?.token || '');
 
   // State
   const [sessions, setSessions] = useState<AiSessionSummary[]>([]);
@@ -86,7 +89,7 @@ export default function AiChat() {
     } catch { /* silent */ }
   };
 
-  // ── Send Message ───────────────────────────────────────────────────────
+  // ── Send Message (with streaming) ──────────────────────────────────────
   const handleSend = async () => {
     const text = input.trim();
     if (!text || sending) return;
@@ -103,25 +106,58 @@ export default function AiChat() {
       } catch { return; }
     }
 
-    // Optimistic user message
+    // Optimistic: add user message + empty streaming placeholder
     const userMsg: AiMessage = { role: 'user', content: text, timestamp: new Date().toISOString() };
-    setActiveSession((prev) => prev ? { ...prev, messages: [...prev.messages, userMsg] } : prev);
+    const streamingMsg: AiMessage = { role: 'assistant', content: '', timestamp: new Date().toISOString() };
+    setActiveSession((prev) => prev ? { ...prev, messages: [...prev.messages, userMsg, streamingMsg] } : prev);
     setInput('');
     setSending(true);
 
     try {
-      const result = await sendMessageApi(session!._id, text, selectedModel);
-      setActiveSession((prev) => prev ? {
-        ...prev,
-        messages: [...prev.messages, result.message],
-        title: result.sessionTitle,
-      } : prev);
-      setSessions((prev) =>
-        prev.map((s) => s._id === session!._id ? { ...s, title: result.sessionTitle, updatedAt: new Date().toISOString() } : s)
+      let streamFailed = false;
+      let finalContent = '';
+
+      await streamMessageApi(
+        session!._id,
+        text,
+        selectedModel,
+        {
+          onToken: (token) => {
+            finalContent += token;
+            setActiveSession((prev) => {
+              if (!prev) return prev;
+              const msgs = [...prev.messages];
+              const lastIdx = msgs.length - 1;
+              if (msgs[lastIdx]?.role === 'assistant') {
+                msgs[lastIdx] = { ...msgs[lastIdx], content: finalContent };
+              }
+              return { ...prev, messages: msgs };
+            });
+          },
+          onError: () => { streamFailed = true; },
+        },
+        accessToken
       );
+
+      if (streamFailed || !finalContent) {
+        // Fallback to regular HTTP if streaming failed
+        const result = await sendMessageApi(session!._id, text, selectedModel);
+        setActiveSession((prev) => {
+          if (!prev) return prev;
+          const msgs = prev.messages.filter((m) => !(m.role === 'assistant' && m.content === ''));
+          return { ...prev, messages: [...msgs, result.message], title: result.sessionTitle };
+        });
+        setSessions((prev) =>
+          prev.map((s) => s._id === session!._id ? { ...s, title: result.sessionTitle, updatedAt: new Date().toISOString() } : s)
+        );
+      }
     } catch {
       const errMsg: AiMessage = { role: 'assistant', content: 'Sorry, something went wrong. Please try again.', timestamp: new Date().toISOString() };
-      setActiveSession((prev) => prev ? { ...prev, messages: [...prev.messages, errMsg] } : prev);
+      setActiveSession((prev) => {
+        if (!prev) return prev;
+        const msgs = prev.messages.filter((m) => !(m.role === 'assistant' && m.content === ''));
+        return { ...prev, messages: [...msgs, errMsg] };
+      });
     } finally {
       setSending(false);
     }

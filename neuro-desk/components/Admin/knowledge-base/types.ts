@@ -25,6 +25,7 @@ export interface RAGResponse {
   confidence: number;
   tokens_used: number;
   latency_ms: number;
+  model?: string;
 }
 
 export interface PaginationInfo {

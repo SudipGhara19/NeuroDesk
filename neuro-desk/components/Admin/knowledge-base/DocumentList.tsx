@@ -2,12 +2,15 @@
 
 import { KBDocument } from './types';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { Archive, FileText, Book, File, ClipboardList, Paperclip } from 'lucide-react';
+import { Archive, FileText, Book, File, ClipboardList, Paperclip, RefreshCw } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { reIndexDocument } from './api';
 
 interface Props {
   documents: KBDocument[];
   loading: boolean;
   onDelete: (doc: KBDocument) => void;
+  onReIndex?: () => void;
 }
 
 const STATUS_CONFIG = {
@@ -76,9 +79,23 @@ function SkeletonRow({ dark }: { dark: boolean }) {
   );
 }
 
-export default function DocumentList({ documents, loading, onDelete }: Props) {
+export default function DocumentList({ documents, loading, onDelete, onReIndex }: Props) {
   const { theme } = useTheme();
   const dark = theme === 'dark';
+  const [reIndexingId, setReIndexingId] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const handleReIndex = async (doc: KBDocument, file: File) => {
+    setReIndexingId(doc._id);
+    try {
+      await reIndexDocument(doc._id, file);
+      onReIndex?.();
+    } catch (err) {
+      console.error('[ReIndex] Failed:', err);
+    } finally {
+      setReIndexingId(null);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -110,7 +127,7 @@ export default function DocumentList({ documents, loading, onDelete }: Props) {
                   }`}
               >
                 {/* File type icon */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${fileColor}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${fileColor}`}>
                   {fileIcon}
                 </div>
 
@@ -142,6 +159,40 @@ export default function DocumentList({ documents, loading, onDelete }: Props) {
                 <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold flex-shrink-0 ${status.bg} ${status.text}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                   {status.label}
+                </div>
+
+                {/* Version badge */}
+                {doc.version >= 1 && (
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex-shrink-0 ${dark ? 'bg-white/10 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                    v{doc.version}
+                  </span>
+                )}
+
+                {/* Re-Index button */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".pdf,.txt,.md,.docx"
+                    className="hidden"
+                    ref={(el) => { fileInputRefs.current[doc._id] = el; }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleReIndex(doc, file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRefs.current[doc._id]?.click()}
+                    disabled={reIndexingId === doc._id || doc.status === 'processing'}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                      ${dark
+                        ? 'hover:bg-blue-500/20 text-gray-500 hover:text-blue-400'
+                        : 'hover:bg-blue-50 text-gray-400 hover:text-blue-500'
+                      }`}
+                    title="Re-Index document with updated file"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${reIndexingId === doc._id ? 'animate-spin' : ''}`} />
+                  </button>
                 </div>
 
                 {/* Delete button */}

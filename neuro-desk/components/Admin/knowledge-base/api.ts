@@ -60,3 +60,23 @@ export async function pollDocumentStatus(
   }
   throw new Error('Document processing timed out.');
 }
+
+// Re-index a document with a new file (Admin/Manager only)
+export async function reIndexDocument(
+  id: string,
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<{ message: string; document: Partial<KBDocument> }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await api.post(`/documents/${id}/reindex`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (evt) => {
+      if (evt.total) {
+        onProgress?.(Math.round((evt.loaded / evt.total) * 100));
+      }
+    },
+  });
+  return data;
+}

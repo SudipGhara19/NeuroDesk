@@ -181,7 +181,7 @@ export default function KnowledgeBase() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <DocumentList documents={documents} loading={loading} onDelete={(doc) => setConfirm({ open: true, doc })} />
+              <DocumentList documents={documents} loading={loading} onDelete={(doc) => setConfirm({ open: true, doc })} onReIndex={fetchDocs} />
             </div>
           </div>
         )}

@@ -8,6 +8,7 @@ const {
   getDocument,
   deleteDocument,
   queryDocuments,
+  reIndexDocument,
 } = require('../controllers/document.controller');
 
 // POST /api/documents/upload — any authenticated user can upload
@@ -31,8 +32,17 @@ router.get('/:id', verifyToken, getDocument);
 router.delete(
   '/:id',
   verifyToken,
-  restrictTo('Admin', 'Manager'),  // match User model enum: 'Admin'|'Manager'|'User'
+  restrictTo('Admin', 'Manager'),
   deleteDocument
+);
+
+// POST /api/documents/:id/reindex — re-index with new file version
+router.post(
+  '/:id/reindex',
+  verifyToken,
+  restrictTo('Admin', 'Manager'),
+  upload.single('file'),
+  reIndexDocument
 );
 
 module.exports = router;

@@ -165,10 +165,59 @@ const queryDocuments = async (req, res) => {
   }
 };
 
+// ─── POST /api/documents/:id/reindex ─────────────────────────────────────────
+
+const reIndexDocument = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'A replacement file is required to re-index.' });
+    }
+
+    const doc = await Document.findById(req.params.id);
+    if (!doc) {
+      return res.status(404).json({ message: 'Document not found.' });
+    }
+
+    // 1. Delete existing vectors from Pinecone
+    if (doc.pineconeNamespace) {
+      await deleteDocumentVectors(doc.pineconeNamespace);
+    }
+
+    // 2. Bump version, reset status
+    doc.version = (doc.version || 1) + 1;
+    doc.status = 'processing';
+    doc.chunkCount = 0;
+    doc.errorMessage = null;
+    doc.fileName = req.file.originalname;
+    doc.fileSize = req.file.size;
+    await doc.save();
+
+    // 3. Kick off the pipeline async (non-blocking)
+    processDocument(doc, req.file.buffer).catch((err) => {
+      console.error(`[ReIndex] Pipeline failed for ${doc.fileName}:`, err.message);
+    });
+
+    return res.status(202).json({
+      message: `Document re-indexing started (Version ${doc.version}).`,
+      document: {
+        _id: doc._id,
+        title: doc.title,
+        fileName: doc.fileName,
+        version: doc.version,
+        status: doc.status,
+      },
+    });
+  } catch (err) {
+    console.error('[Document] Re-index error:', err);
+    return res.status(500).json({ message: 'Re-index failed.', error: err.message });
+  }
+};
+
 module.exports = {
   uploadDocument,
   listDocuments,
   getDocument,
   deleteDocument,
   queryDocuments,
+  reIndexDocument,
 };

@@ -9,6 +9,7 @@ const {
   deleteChatSession,
   sendChatMessage,
   switchModel,
+  streamChatMessage,
 } = require('../controllers/ai-chat.controller');
 
 // All routes require authentication
@@ -34,5 +35,8 @@ router.post('/sessions/:id/messages', sendChatMessage);
 
 // PATCH /api/ai-chat/sessions/:id/model — switch model mid-session
 router.patch('/sessions/:id/model', switchModel);
+
+// POST /api/ai-chat/sessions/:id/stream — stream AI response as SSE tokens
+router.post('/sessions/:id/stream', streamChatMessage);
 
 module.exports = router;

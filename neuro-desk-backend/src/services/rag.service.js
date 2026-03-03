@@ -10,6 +10,7 @@ const { embedText } = require('./embedding.service');
 const { getPineconeIndex } = require('../config/pinecone');
 const Document = require('../models/document.model');
 const Settings = require('../models/settings.model');
+const { getCache, setCache, buildRagCacheKey } = require('./cache.service');
 
 // Lazy Groq client
 let _groq = null;
@@ -109,6 +110,17 @@ async function ragQuery(query, options = {}) {
   const model = options.model || settings.defaultAiModel || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
   const customPrompt = settings.customSystemPrompt;
 
+  // ── Redis Cache Check (only for stateless queries without conversation history) ─
+  const canCache = !options.conversationHistory || options.conversationHistory.length === 0;
+  if (canCache) {
+    const cacheKey = buildRagCacheKey(query);
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      console.log(`[Cache] HIT for query: "${query.slice(0, 40)}..."`);
+      return { ...cached, latency_ms: Date.now() - startTime, cache_hit: true };
+    }
+  }
+
   // Detect casual/conversational queries (greetings, thanks, etc.)
   const casualPatterns = /^(hi|hello|hey|howdy|greetings|good\s*(morning|afternoon|evening)|thanks|thank\s*you|bye|goodbye|ok|okay|sure|yes|no|yo|sup|what's up|how are you)[!?.\s]*$/i;
   if (casualPatterns.test(query.trim())) {
@@ -155,7 +167,6 @@ async function ragQuery(query, options = {}) {
       model,
     };
   }
-
   // 3. Build context + sources
   const { context, sources, confidence } = buildContext(matches);
 
@@ -180,7 +191,7 @@ async function ragQuery(query, options = {}) {
   const answer = completion.choices[0].message.content.trim();
   const tokensUsed = completion.usage?.total_tokens || 0;
 
-  return {
+  const result = {
     answer,
     sources,
     confidence,
@@ -188,6 +199,14 @@ async function ragQuery(query, options = {}) {
     latency_ms: Date.now() - startTime,
     model,
   };
+
+  // Store in Redis cache for future identical queries (only stateless queries)
+  if (canCache) {
+    const cacheKey = buildRagCacheKey(query);
+    await setCache(cacheKey, result, 60 * 5); // 5 minute TTL
+  }
+
+  return result;
 }
 
 module.exports = { ragQuery };
