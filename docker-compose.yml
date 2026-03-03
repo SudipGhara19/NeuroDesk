@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  neurodesk-frontend:
+    build:
+      context: ./neuro-desk
+      dockerfile: Dockerfile
+    container_name: neurodesk-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:5868/api
+    depends_on:
+      - neurodesk-backend
+    restart: unless-stopped
+    networks:
+      - neurodesk_network
+
+  neurodesk-backend:
+    build:
+      context: ./neuro-desk-backend
+      dockerfile: Dockerfile
+    container_name: neurodesk-backend
+    ports:
+      - "5868:5868"
+    env_file:
+      - ./neuro-desk-backend/.env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=5868
+    restart: unless-stopped
+    networks:
+      - neurodesk_network
+
+networks:
+  neurodesk_network:
+    driver: bridge

@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+# Render automatically deploys push commits to the 'main' branch based on its own dashboard webhooks.
+# This GitHub Action pipeline is responsible for running strict build validations and tests
+# before code is allowed to deploy, ensuring no broken apps reach production!
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install Frontend Dependencies
+        working-directory: ./neuro-desk
+        run: npm ci
+
+      - name: Build Next.js Frontend
+        working-directory: ./neuro-desk
+        # This will catch any strict ESLint or TypeScript compile errors
+        run: npm run build
+
+      - name: Install Backend Dependencies
+        working-directory: ./neuro-desk-backend
+        run: npm ci
+
+      # In a real environment, you'd add tests here:
+      # - name: Run Backend Unit Tests
+      #   working-directory: ./neuro-desk-backend
+      #   run: npm test
