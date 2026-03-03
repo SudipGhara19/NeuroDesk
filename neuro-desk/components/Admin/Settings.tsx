@@ -9,6 +9,10 @@ interface SystemSettings {
   allowRegistration: boolean;
   defaultAiModel: string;
   customSystemPrompt: string;
+  ragTopK: number;
+  ragConfidenceThreshold: number;
+  chunkSize: number;
+  chunkOverlap: number;
 }
 
 export default function Settings() {
@@ -19,6 +23,10 @@ export default function Settings() {
     allowRegistration: true,
     defaultAiModel: 'llama-3.1-8b-instant',
     customSystemPrompt: '',
+    ragTopK: 5,
+    ragConfidenceThreshold: 0.15,
+    chunkSize: 500,
+    chunkOverlap: 50,
   });
 
   const [loading, setLoading] = useState(true);
@@ -71,7 +79,11 @@ export default function Settings() {
     const { name, value, type } = e.target;
     setSettings(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: type === 'checkbox' 
+        ? (e.target as HTMLInputElement).checked 
+        : type === 'number' || type === 'range' 
+          ? parseFloat(value) 
+          : value
     }));
   };
 
@@ -205,6 +217,115 @@ export default function Settings() {
             <p className={`text-[10px] mt-2 font-medium uppercase tracking-wider ${isDark ? 'text-purple-400/50' : 'text-purple-600/50'}`}>
               <BsExclamationTriangle className="inline w-3 h-3 mb-0.5 mr-1" />
               The RAG context and user query will be appended directly below this prompt.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Vector Engine Panel */}
+      <div className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-gray-100'}`}>
+        <h3 className={`text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Advanced Vector Engine <span className="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-2 py-0.5 rounded text-[10px]">RAG</span>
+        </h3>
+        
+        <div className="space-y-8">
+          {/* Top K */}
+          <div>
+            <div className="flex justify-between items-end mb-2">
+              <label className={`block text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Retrieval Depth (Top-K)
+              </label>
+              <span className={`text-xs font-mono font-bold px-2 py-1 rounded ${isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                {settings.ragTopK} chunks
+              </span>
+            </div>
+            <p className={`text-xs mb-4 leading-relaxed max-w-2xl ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              The maximum number of document chunks fetched from Pinecone per AI query. Higher values provide more context but drastically increase latency and Groq Token costs.
+            </p>
+            <input
+              type="range"
+              title="Retrieval Depth"
+              name="ragTopK"
+              min="1"
+              max="20"
+              step="1"
+              value={settings.ragTopK}
+              onChange={handleChange}
+              className="w-full xl:max-w-xl appearance-none h-2 bg-gray-200 dark:bg-white/10 rounded-full outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110"
+            />
+          </div>
+
+          <div className="pt-6 border-t dark:border-white/5 border-gray-100">
+            <div className="flex justify-between items-end mb-2">
+              <label className={`block text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                AI Confidence Threshold
+              </label>
+              <span className={`text-xs font-mono font-bold px-2 py-1 rounded ${isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                {settings.ragConfidenceThreshold.toFixed(2)} score
+              </span>
+            </div>
+            <p className={`text-xs mb-4 leading-relaxed max-w-2xl ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              The minimum similarity score required to include a document chunk in the AI&apos;s answer. Lower scores pull more distant information; higher scores restrict the AI to only perfect matches.
+            </p>
+            <input
+              type="range"
+              title="Confidence Threshold"
+              name="ragConfidenceThreshold"
+              min="0.05"
+              max="0.80"
+              step="0.05"
+              value={settings.ragConfidenceThreshold}
+              onChange={handleChange}
+              className="w-full xl:max-w-xl appearance-none h-2 bg-gray-200 dark:bg-white/10 rounded-full outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110"
+            />
+          </div>
+
+          <div className="pt-6 border-t dark:border-white/5 border-gray-100">
+            <h4 className={`text-sm font-bold mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Knowledge Indexing Boundaries</h4>
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex-1">
+                <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Upload Chunk Size
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="chunkSize"
+                    value={settings.chunkSize}
+                    onChange={handleChange}
+                    className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm ${
+                      isDark 
+                        ? 'bg-black border-white/10 text-white focus:border-blue-500 hover:border-white/20' 
+                        : 'bg-gray-50 border-gray-200 text-black focus:border-blue-500 hover:border-gray-300'
+                    }`}
+                  />
+                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>words</span>
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Overlap Padding
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="chunkOverlap"
+                    value={settings.chunkOverlap}
+                    onChange={handleChange}
+                    className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm ${
+                      isDark 
+                        ? 'bg-black border-white/10 text-white focus:border-blue-500 hover:border-white/20' 
+                        : 'bg-gray-50 border-gray-200 text-black focus:border-blue-500 hover:border-gray-300'
+                    }`}
+                  />
+                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>words</span>
+                </div>
+              </div>
+            </div>
+            <p className={`text-[10px] mt-3 font-medium ${isDark ? 'text-amber-500/80' : 'text-orange-500/80'}`}>
+              <BsExclamationTriangle className="inline w-3 h-3 mb-0.5 mr-1" />
+              Note: Changing these boundaries only affects <b>future</b> document uploads, not currently indexed files.
             </p>
           </div>
         </div>

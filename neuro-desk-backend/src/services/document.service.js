@@ -4,6 +4,7 @@ const { randomUUID } = require('crypto');
 const { embedTexts } = require('./embedding.service'); // free local MiniLM-L6-v2 (384 dims)
 const { getPineconeIndex } = require('../config/pinecone');
 const Document = require('../models/document.model');
+const Settings = require('../models/settings.model');
 
 // ─── Text Extraction ─────────────────────────────────────────────────────────
 
@@ -125,9 +126,14 @@ async function processDocument(docRecord, fileBuffer) {
       throw new Error('No extractable text found in document.');
     }
 
-    // 2. Split into chunks
-    const chunks = chunkText(rawText, 500, 50);
-    console.log(`[Pipeline] ${docRecord.fileName}: ${chunks.length} chunks`);
+    // Load global Admin Vector bounds
+    const settings = await Settings.getSystemSettings();
+    const cSize = settings.chunkSize || 500;
+    const cOverlap = settings.chunkOverlap || 50;
+
+    // 2. Split into chunks dynamically
+    const chunks = chunkText(rawText, cSize, cOverlap);
+    console.log(`[Pipeline] ${docRecord.fileName}: ${chunks.length} chunks (Size: ${cSize}, Overlap: ${cOverlap})`);
 
     // 3. Embed all chunks using local MiniLM-L6-v2 (free, no quota)
     console.log(`[Pipeline] Embedding ${chunks.length} chunks locally...`);

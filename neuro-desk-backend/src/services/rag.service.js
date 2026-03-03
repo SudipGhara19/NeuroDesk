@@ -100,11 +100,12 @@ function buildPrompt(query, context, systemPrompt) {
 
 async function ragQuery(query, options = {}) {
   const startTime = Date.now();
-  const topK = options.topK || 5;
-  const namespaces = options.namespaces || [];
-
+  
   // Fetch live system settings to apply dynamic modifications
   const settings = await Settings.getSystemSettings();
+
+  const topK = options.topK || settings.ragTopK || 5;
+  const namespaces = options.namespaces || [];
   const model = options.model || settings.defaultAiModel || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
   const customPrompt = settings.customSystemPrompt;
 
@@ -140,8 +141,11 @@ async function ragQuery(query, options = {}) {
   // 2. Retrieve chunks
   const matches = await retrieveChunks(queryEmbedding, topK, namespaces);
 
-  // Fallback if no good matches (lowered threshold from 0.3 → 0.15)
-  if (matches.length === 0 || (matches[0]?.score || 0) < 0.15) {
+  // 3. Dynamic Threshold check
+  const threshold = settings.ragConfidenceThreshold !== undefined ? settings.ragConfidenceThreshold : 0.15;
+
+  // Fallback if no good matches (fails dynamic threshold check)
+  if (matches.length === 0 || (matches[0]?.score || 0) < threshold) {
     return {
       answer: "I don't have enough information in the knowledge base to answer this question. Try rephrasing, or upload relevant documents.",
       sources: [],

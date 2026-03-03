@@ -5,9 +5,27 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/email.service');
 
-const generateToken = (id, email, role) => {
+// Generate short-lived Access Token (15m)
+const generateAccessToken = (id, email, role) => {
   return jwt.sign({ id, email, role }, process.env.JWT_SECRET, {
-    expiresIn: '1d',
+    expiresIn: '15m',
+  });
+};
+
+// Generate long-lived Refresh Token (7d)
+const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
+};
+
+// Helper: Attach HTTP-Only cookie
+const attachRefreshCookie = (res, token) => {
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // Allows cross-origin in prod
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
 
@@ -63,13 +81,20 @@ const signup = async (req, res, next) => {
         { returnDocument: 'after' }
       );
 
+      // Issue dual tokens
+      const accessToken = generateAccessToken(user._id, user.email, user.role);
+      const refreshToken = generateRefreshToken(user._id);
+
+      // Set Refresh string invisibly and securely via Cookie
+      attachRefreshCookie(res, refreshToken);
+
       res.status(201).json({
         _id: user._id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
         userData: userData,
-        token: generateToken(user._id, user.email, user.role),
+        token: accessToken, // Frontend only sees short-lived access token
       });
     } else {
       res.status(400);
@@ -107,13 +132,20 @@ const login = async (req, res, next) => {
         { returnDocument: 'after' } // Return the updated document
       );
 
+      // Issue dual tokens
+      const accessToken = generateAccessToken(user._id, user.email, user.role);
+      const refreshToken = generateRefreshToken(user._id);
+
+      // Set Refresh string invisibly and securely via Cookie
+      attachRefreshCookie(res, refreshToken);
+
       res.json({
         _id: user._id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
         userData: userData,
-        token: generateToken(user._id, user.email, user.role),
+        token: accessToken, // Frontend only sees short-lived access token
       });
     } else {
       res.status(401);
@@ -222,7 +254,53 @@ const logout = async (req, res, next) => {
       }
     );
 
+    // Destroy the refresh cookie on logout
+    res.clearCookie('jwt', { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    });
+
     res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Refresh Access Token
+// @route   GET /api/auth/refresh
+// @access  Public (Relies on httpOnly cookie)
+const refreshToken = async (req, res, next) => {
+  try {
+    const cookies = req.cookies;
+    
+    if (!cookies?.jwt) {
+      res.status(401);
+      throw new Error('Unauthorized - No refresh cookie attached');
+    }
+
+    const currentRefreshToken = cookies.jwt;
+
+    // Verify the JWT string
+    jwt.verify(currentRefreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        res.status(403);
+        return next(new Error('Forbidden - Refresh token expired or invalid'));
+      }
+
+      // Fetch user to re-encode the access token with the latest role definitions
+      const user = await User.findById(decoded.id);
+
+      if (!user) {
+        res.status(401);
+        return next(new Error('Unauthorized - User no longer exists'));
+      }
+
+      // Issue fresh access token (15m)
+      const accessToken = generateAccessToken(user._id, user.email, user.role);
+      
+      res.json({ token: accessToken });
+    });
   } catch (error) {
     next(error);
   }
@@ -234,4 +312,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   logout,
+  refreshToken
 };

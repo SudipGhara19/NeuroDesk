@@ -14,6 +14,13 @@ const analyticsRoutes = require('./src/routes/analytics.routes');
 const settingsRoutes = require('./src/routes/settings.routes');
 const errorMiddleware = require('./src/middlewares/error.middleware');
 
+// Security & Audit Middleware Imports
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -35,8 +42,40 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // Body limit is 10kb
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
 app.use(cors(corsOptions));
+
+// Security & Polish Middlewares
+app.use(helmet()); // Set specific HTTP headers
+
+// Prevent NoSQL Injections safely in Express 5 (req.query is read-only)
+app.use((req, res, next) => {
+  if (req.body) req.body = mongoSanitize.sanitize(req.body, { replaceWith: '_' });
+  if (req.params) req.params = mongoSanitize.sanitize(req.params, { replaceWith: '_' });
+  if (req.query) {
+    const sanitizedQuery = mongoSanitize.sanitize(req.query, { replaceWith: '_' });
+    for (const key in req.query) delete req.query[key];
+    Object.assign(req.query, sanitizedQuery);
+  }
+  next();
+});
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev')); // API hitting logs in dev
+} else {
+  app.use(morgan('combined')); // Strict auditing in prod
+}
+
+// Global API Rate Limiting (Prevent Brute forcing)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: 'draft-7', 
+  legacyHeaders: false, 
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' }
+});
+app.use('/api', limiter);
 
 // Make io accessible in request
 app.use((req, res, next) => {

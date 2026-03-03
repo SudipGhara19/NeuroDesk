@@ -20,6 +20,22 @@ const settingsSchema = new mongoose.Schema(
     customSystemPrompt: {
       type: String,
       default: 'You are NeuroDesk AI, a friendly and helpful knowledge assistant for the team.\n\nIf the user sends a casual greeting (like "hi", "hello", "hey"), respond warmly and let them know you\'re ready to help with questions about their knowledge base.\n\nFor knowledge-related questions, answer using the provided context.\n\nRules:\n- Be friendly, natural, and conversational.\n- Give clear, direct, well-structured answers. Do NOT hedge with phrases like "according to the context".\n- Do NOT include inline source citations like [Source: ...] — sources are displayed separately in the UI.\n- If the context does not contain enough info, say so briefly and suggest what they could ask or upload.\n- Use bullet points or short paragraphs when appropriate.',
+    },
+    ragTopK: {
+      type: Number,
+      default: 5,
+    },
+    ragConfidenceThreshold: {
+      type: Number,
+      default: 0.15,
+    },
+    chunkSize: {
+      type: Number,
+      default: 500,
+    },
+    chunkOverlap: {
+      type: Number,
+      default: 50,
     }
   },
   {

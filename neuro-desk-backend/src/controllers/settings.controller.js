@@ -18,7 +18,15 @@ const getSettings = async (req, res, next) => {
 const updateSettings = async (req, res, next) => {
   try {
     // We only update fields that were passed in
-    const updateKeys = ['allowRegistration', 'defaultAiModel', 'customSystemPrompt'];
+    const updateKeys = [
+      'allowRegistration', 
+      'defaultAiModel', 
+      'customSystemPrompt',
+      'ragTopK',
+      'ragConfidenceThreshold',
+      'chunkSize',
+      'chunkOverlap'
+    ];
     
     // Ensure the document exists
     await Settings.getSystemSettings();
