@@ -41,7 +41,14 @@ Backend (Express 5 + Socket.IO)
   Groq LLM  +  Local MiniLM Embeddings
 ```
 
-📐 See full architecture and diagrams → [`docs/architecture.md`](./docs/architecture.md)
+📐 **Architecture Diagrams:**
+
+- [System Architecture](./docs/diagrams/System Diagram.png)
+- [Data Flow Diagram](./docs/diagrams/Data-flow-Diagram(User Query).png)
+- [RAG Ingestion Pipeline](./docs/diagrams/RAG Ingestion Pipeline.png)
+- [RAG Query Pipeline](./docs/diagrams/RAG Pipeline - Query Retrieval.png)
+
+- [MongoDB Collections overview](./docs/diagrams/MongoDB Collections Overview.png)
 
 ---
 
@@ -93,7 +100,7 @@ NeuroDesk/
 │   └── package.json
 │
 ├── docs/
-│   ├── architecture.md          # System + DataFlow + RAG pipeline diagrams
+│   ├── diagrams/                # Exported architecture images
 │   ├── db-schema.md             # MongoDB schema + ERD
 │   ├── api-docs.md              # Full API reference
 │   └── design-decisions.md      # Tradeoffs + Scalability + Cost
@@ -208,12 +215,14 @@ Base URL: `https://your-backend.onrender.com/api`
 
 ## 📊 Documentation
 
-| Document                              | Link                                                     |
-| ------------------------------------- | -------------------------------------------------------- |
-| System Architecture + Data Flow       | [`docs/architecture.md`](./docs/architecture.md)         |
-| Database Schema (ERD)                 | [`docs/db-schema.md`](./docs/db-schema.md)               |
-| API Documentation                     | [`docs/api-docs.md`](./docs/api-docs.md)                 |
-| Design Decisions + Scalability + Cost | [`docs/design-decisions.md`](./docs/design-decisions.md) |
+| Document                              | Link                                                                                                                                    |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| System Architecture Diagram           | [`docs/diagrams/system-architecture.png`](./docs/diagrams/system-architecture.png)                                                      |
+| Data Flow Diagram                     | [`docs/diagrams/data-flow.png`](./docs/diagrams/data-flow.png)                                                                          |
+| RAG Pipeline Diagrams                 | [`docs/diagrams/rag-ingestion.png`](./docs/diagrams/rag-ingestion.png) & [`docs/diagrams/rag-query.png`](./docs/diagrams/rag-query.png) |
+| Database Schema (ERD)                 | [`docs/db-schema.md`](./docs/db-schema.md)                                                                                              |
+| API Documentation                     | [`docs/api-docs.md`](./docs/api-docs.md)                                                                                                |
+| Design Decisions + Scalability + Cost | [`docs/design-decisions.md`](./docs/design-decisions.md)                                                                                |
 
 ---
 
