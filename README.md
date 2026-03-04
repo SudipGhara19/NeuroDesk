@@ -209,7 +209,10 @@ Base URL: `https://your-backend.onrender.com/api`
 | GET    | `/settings`                      | Get system settings          |
 | PUT    | `/settings`                      | Update settings (Admin)      |
 
-📖 Full API Reference → [`docs/api-docs.md`](./docs/api-docs.md)
+📖 **API Reference:**
+
+- 🟠 [Postman Published Docs](https://documenter.getpostman.com/view/26021554/2sBXcKCJ3Z) — Interactive, live endpoint documentation
+- 📄 [`docs/api-docs.md`](./docs/api-docs.md) — Full markdown API reference
 
 ---
 
@@ -222,8 +225,9 @@ Base URL: `https://your-backend.onrender.com/api`
 | RAG Ingestion Pipeline                | [`RAG Ingestion Pipeline.png`](./docs/diagrams/RAG%20Ingestion%20Pipeline.png)                     |
 | RAG Query Pipeline                    | [`RAG Pipeline - Query Retrieval.png`](./docs/diagrams/RAG%20Pipeline%20-%20Query%20Retrieval.png) |
 | MongoDB Collections Overview          | [`MongoDB Collections Overview.png`](./docs/diagrams/MongoDB%20Collections%20Overview.png)         |
+| API Documentation (Interactive)       | [🟠 Postman Docs](https://documenter.getpostman.com/view/26021554/2sBXcKCJ3Z)                      |
+| API Documentation (Markdown)          | [`docs/api-docs.md`](./docs/api-docs.md)                                                           |
 | Database Schema (ERD)                 | [`docs/db-schema.md`](./docs/db-schema.md)                                                         |
-| API Documentation                     | [`docs/api-docs.md`](./docs/api-docs.md)                                                           |
 | Design Decisions + Scalability + Cost | [`docs/design-decisions.md`](./docs/design-decisions.md)                                           |
 
 ---
