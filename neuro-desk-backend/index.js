@@ -24,15 +24,21 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const server = http.createServer(app);
 
-// Determine the allowed origin based on the environment
-const allowedOrigin = process.env.ENVIRONMENT === 'prod' 
-  ? "https://neuro-desk-steel.vercel.app" 
-  : "http://localhost:3000";
+// Allow both production (Vercel) and local dev origins
+const allowedOrigins = [
+  "https://neuro-desk-steel.vercel.app",
+  "http://localhost:3000",
+];
 
-
-  
 const corsOptions = {
-  origin: allowedOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, mobile apps, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true
 };
