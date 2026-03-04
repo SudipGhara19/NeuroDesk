@@ -5,6 +5,7 @@ import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { AxiosError } from 'axios';
+import Toast from '@/components/ui/Toast';
 
 const ResetPasswordForm = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -12,6 +13,7 @@ const ResetPasswordForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,8 +47,8 @@ const ResetPasswordForm = () => {
 
     try {
       await api.post('/auth/reset-password', { token, newPassword });
-      alert('Password reset successful! Please log in.');
-      router.push('/auth?tab=login');
+      setToast({ message: 'Password reset successfully! Redirecting to login...', type: 'success' });
+      setTimeout(() => router.push('/auth?tab=login'), 1500);
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;
       setError(axiosError.response?.data?.message || 'Failed to reset password');
@@ -57,6 +59,13 @@ const ResetPasswordForm = () => {
 
   return (
     <div className='w-full max-w-[420px]'>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className='mb-12 text-center lg:text-left flex flex-col items-center lg:items-start'>
         <div className="mb-8">
           <Image src={logo} alt="Neuro Desk Logo" width={96} height={96} />

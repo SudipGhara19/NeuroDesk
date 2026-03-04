@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import logo from "../../public/common/logo.png";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import Toast from '@/components/ui/Toast';
 
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -18,6 +19,7 @@ const SignUpForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -36,8 +38,8 @@ const SignUpForm = () => {
       
       dispatch(setCredentials({ user, token }));
       localStorage.setItem('token', token);
-      alert('Account created successfully!');
-      router.push('/');
+      setToast({ message: 'Account created! Redirecting...', type: 'success' });
+      setTimeout(() => router.push('/'), 1000);
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;
       setError(axiosError.response?.data?.message || 'Something went wrong. Please try again.');
@@ -48,6 +50,13 @@ const SignUpForm = () => {
 
   return (
     <div className='w-full max-w-[420px]'>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className='mb-12 text-center lg:text-left flex flex-col items-center lg:items-start'>
         <div className="mb-8">
           <Image src={logo} alt="Neuro Desk Logo" width={96} height={96} />

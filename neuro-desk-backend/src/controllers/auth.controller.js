@@ -176,7 +176,7 @@ const forgotPassword = async (req, res, next) => {
     });
 
     // Reset URL
-    const resetUrl = `${req.protocol}://localhost:3000/auth?tab=resetPassword&token=${resetToken}`;
+    const resetUrl = `https://neuro-desk-steel.vercel.app/auth?tab=resetPassword&token=${resetToken}`;
 
     const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the link below to reset your password: \n\n ${resetUrl}`;
 
