@@ -105,8 +105,12 @@ NeuroDesk/
 │   ├── api-docs.md              # Full API reference
 │   └── design-decisions.md      # Tradeoffs + Scalability + Cost
 │
-├── docker-compose.yml
-├── .github/workflows/deploy.yml # CI/CD
+├── docker-compose.yml           # Docker multi-container setup (frontend + backend)
+├── nginx.conf                   # Nginx reverse proxy configuration
+├── ecosystem.config.js          # PM2 process manager config (production)
+├── .github/
+│   └── workflows/
+│       └── deploy.yml           # GitHub Actions CI/CD pipeline
 └── README.md
 ```
 
@@ -247,9 +251,14 @@ Base URL: `https://your-backend.onrender.com/api`
 
 ## 🚀 Deployment
 
-- **Frontend** → Vercel (Auto-deploy on `main` push)
-- **Backend** → Render (Auto-deploy on `main` push via CI/CD)
-- **CI/CD** → GitHub Actions (`.github/workflows/deploy.yml`)
+| Tool               | File                                                             | Purpose                                                     |
+| ------------------ | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Vercel**         | —                                                                | Frontend auto-deploy on every `main` push                   |
+| **Render**         | —                                                                | Backend auto-deploy on every `main` push                    |
+| **GitHub Actions** | [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) | CI/CD pipeline — test + build on push                       |
+| **Docker**         | [`docker-compose.yml`](./docker-compose.yml)                     | Spin up frontend + backend together locally                 |
+| **Nginx**          | [`nginx.conf`](./nginx.conf)                                     | Reverse proxy — routes `/api/*` to backend, `/` to frontend |
+| **PM2**            | [`ecosystem.config.js`](./ecosystem.config.js)                   | Process manager — keeps backend alive with auto-restart     |
 
 ---
 
