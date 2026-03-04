@@ -215,14 +215,16 @@ Base URL: `https://your-backend.onrender.com/api`
 
 ## 📊 Documentation
 
-| Document                              | Link                                                                                                                                    |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| System Architecture Diagram           | [`docs/diagrams/system-architecture.png`](./docs/diagrams/system-architecture.png)                                                      |
-| Data Flow Diagram                     | [`docs/diagrams/data-flow.png`](./docs/diagrams/data-flow.png)                                                                          |
-| RAG Pipeline Diagrams                 | [`docs/diagrams/rag-ingestion.png`](./docs/diagrams/rag-ingestion.png) & [`docs/diagrams/rag-query.png`](./docs/diagrams/rag-query.png) |
-| Database Schema (ERD)                 | [`docs/db-schema.md`](./docs/db-schema.md)                                                                                              |
-| API Documentation                     | [`docs/api-docs.md`](./docs/api-docs.md)                                                                                                |
-| Design Decisions + Scalability + Cost | [`docs/design-decisions.md`](./docs/design-decisions.md)                                                                                |
+| Document                              | Link                                                                                               |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| System Architecture Diagram           | [`System Diagram.png`](./docs/diagrams/System%20Diagram.png)                                       |
+| Data Flow Diagram                     | [`Data-flow-Diagram(User Query).png`](<./docs/diagrams/Data-flow-Diagram(User%20Query).png>)       |
+| RAG Ingestion Pipeline                | [`RAG Ingestion Pipeline.png`](./docs/diagrams/RAG%20Ingestion%20Pipeline.png)                     |
+| RAG Query Pipeline                    | [`RAG Pipeline - Query Retrieval.png`](./docs/diagrams/RAG%20Pipeline%20-%20Query%20Retrieval.png) |
+| MongoDB Collections Overview          | [`MongoDB Collections Overview.png`](./docs/diagrams/MongoDB%20Collections%20Overview.png)         |
+| Database Schema (ERD)                 | [`docs/db-schema.md`](./docs/db-schema.md)                                                         |
+| API Documentation                     | [`docs/api-docs.md`](./docs/api-docs.md)                                                           |
+| Design Decisions + Scalability + Cost | [`docs/design-decisions.md`](./docs/design-decisions.md)                                           |
 
 ---
 
