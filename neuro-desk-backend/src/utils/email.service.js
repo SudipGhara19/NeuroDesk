@@ -12,17 +12,21 @@ const sendEmail = async (options) => {
     return;
   }
 
+  // Use Gmail service shorthand — handles all host/port/TLS settings automatically
+  // This is more reliable than manual SMTP config on cloud providers like Render
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
+    service: 'gmail',
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,  // Handle self-signed cert issues in cloud environments
+    },
   });
 
   const message = {
-    from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+    from: `${process.env.FROM_NAME || 'NeuroDesk'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,
@@ -30,7 +34,6 @@ const sendEmail = async (options) => {
   };
 
   const info = await transporter.sendMail(message);
-
   console.log('Message sent: %s', info.messageId);
 };
 

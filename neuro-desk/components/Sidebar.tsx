@@ -78,7 +78,7 @@ const SidebarContent = ({ user, activeTab, setIsOpen, handleLogout, menuItems, u
   const { theme, toggleTheme } = useTheme();
   
   return (
-    <div className={`flex flex-col h-full py-8 px-6 transition-colors duration-300 ${
+    <div className={`flex flex-col h-full py-8 px-6 overflow-y-auto transition-colors duration-300 ${
       theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-white text-gray-900 border-r border-gray-100'
     }`}>
       {/* Brand */}
