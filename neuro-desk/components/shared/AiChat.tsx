@@ -17,6 +17,7 @@ import {
   sendMessageApi,
   streamMessageApi,
 } from './ai-chat/api';
+import api from '@/lib/axios';
 
 import SessionSidebar from './ai-chat/SessionSidebar';
 import ModelPicker from './ai-chat/ModelPicker';
@@ -133,6 +134,37 @@ export default function AiChat() {
               }
               return { ...prev, messages: msgs };
             });
+          },
+          onMeta: (meta) => {
+            // Update the streaming placeholder with sources/model/confidence once RAG meta arrives
+            setActiveSession((prev) => {
+              if (!prev) return prev;
+              const msgs = [...prev.messages];
+              const lastIdx = msgs.length - 1;
+              if (msgs[lastIdx]?.role === 'assistant') {
+                msgs[lastIdx] = {
+                  ...msgs[lastIdx],
+                  sources: meta.sources,
+                  confidence: meta.confidence,
+                  model: meta.model,
+                };
+              }
+              return { ...prev, messages: msgs };
+            });
+          },
+          onDone: (latencyMs) => {
+            // Stamp latency on the last message when streaming finishes
+            setActiveSession((prev) => {
+              if (!prev) return prev;
+              const msgs = [...prev.messages];
+              const lastIdx = msgs.length - 1;
+              if (msgs[lastIdx]?.role === 'assistant') {
+                msgs[lastIdx] = { ...msgs[lastIdx], latencyMs };
+              }
+              return { ...prev, messages: msgs };
+            });
+            // Refresh UserData analytics in the background so stats update immediately
+            api.get('/users/profile').catch(() => {});
           },
           onError: () => { streamFailed = true; },
         },

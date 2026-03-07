@@ -238,4 +238,5 @@ module.exports = {
   deleteSession,
   sendMessage,
   updateSessionModel,
+  trackAnalytics,
 };

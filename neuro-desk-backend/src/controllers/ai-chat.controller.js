@@ -223,6 +223,18 @@ const streamChatMessage = async (req, res) => {
         }
         session.stats.totalMessages = session.messages.length;
         await session.save();
+
+        // ── Update UserData analytics (tokens, query count, cost) ─────────────
+        // Groq streaming doesn't return token counts — estimate from output chars (~4 chars/token)
+        const estimatedTokens = Math.ceil(fullAnswer.length / 4);
+        const { trackAnalytics } = require('../services/ai-chat.service');
+        await trackAnalytics(req.user.id, query.trim(), {
+          answer: fullAnswer.trim(),
+          sources: ragResult.sources,
+          confidence: ragResult.confidence,
+          tokens_used: estimatedTokens,
+          latency_ms: latencyMs,
+        }, targetModel);
       } catch (e) {
         console.error('[Stream] Failed to persist session:', e.message);
       }

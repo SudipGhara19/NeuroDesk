@@ -95,6 +95,7 @@ export async function streamMessageApi(
 
   const decoder = new TextDecoder();
   let buffer = '';
+  let currentEvent = 'message'; // track the current SSE event type
 
   while (true) {
     const { done, value } = await reader.read();
@@ -105,20 +106,30 @@ export async function streamMessageApi(
     buffer = lines.pop() ?? ''; // keep incomplete line in buffer
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
+      if (line.startsWith('event: ')) {
+        // Set the event type for the NEXT data: line
+        currentEvent = line.slice(7).trim();
+      } else if (line.startsWith('data: ')) {
         try {
           const payload = JSON.parse(line.slice(6));
-          if (payload.token !== undefined) callbacks.onToken(payload.token);
-          if (payload.latency_ms !== undefined) callbacks.onDone?.(payload.latency_ms);
+
+          if (currentEvent === 'meta') {
+            // sources / confidence / model from the RAG pipeline
+            callbacks.onMeta?.({ sources: payload.sources ?? [], confidence: payload.confidence ?? 0, model: payload.model ?? '' });
+            currentEvent = 'message'; // reset
+          } else if (currentEvent === 'done' || payload.latency_ms !== undefined) {
+            callbacks.onDone?.(payload.latency_ms ?? 0);
+            currentEvent = 'message'; // reset
+          } else if (currentEvent === 'error') {
+            callbacks.onError?.(payload.error || 'Stream error from server');
+            currentEvent = 'message';
+          } else if (payload.token !== undefined) {
+            callbacks.onToken(payload.token);
+          }
         } catch { /* malformed chunk — skip */ }
-      } else if (line.startsWith('event: meta')) {
-        // Next line will have the meta data
-      } else if (line.startsWith('data: ') && buffer.includes('meta')) {
-        // handled above
-      } else if (line.startsWith('event: done')) {
-        // handled via the data: {latency_ms} line that follows
-      } else if (line.startsWith('event: error')) {
-        callbacks.onError?.('Stream error from server');
+      } else if (line === '') {
+        // Blank line = end of SSE event, reset event type to default
+        if (currentEvent !== 'message') currentEvent = 'message';
       }
     }
   }
